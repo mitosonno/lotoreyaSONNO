@@ -1,0 +1,1210 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<!--
+  Font qeydi: brendbukdakı əsas font TT HOVES lisenziyalı fontdur (Google Fonts-da yoxdur),
+  ona görə eyni geometrik/dəyirmi xarakterli əvəzedici olaraq "Plus Jakarta Sans" istifadə
+  olunub. Real istehsalda TT Hoves-un lisenziyalı fayllarını @font-face ilə əlavə edin.
+  Köməkçi font Lora brendbukdakı əsl fontdur və birbaşa Google Fonts-dan yüklənib.
+-->
+
+<style>
+  :root{
+    --dark:#111820;
+    --dark-2:#182129;
+    --dark-3:#1f2a34;
+    --orange:#F78930;
+    --orange-dim:#c96f26;
+    --green:#007565;
+    --green-dk:#004F51;
+    --white:#FFFFFF;
+    --cream:#F6F3EC;
+    --line:rgba(255,255,255,0.09);
+    --line-soft:rgba(17,24,32,0.10);
+    --text-dim:rgba(255,255,255,0.62);
+    --radius:18px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    --sonno-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='84' viewBox='0 0 84 84'%3E%3Cg fill='none' stroke='%23F78930' stroke-width='7' stroke-linecap='round' opacity='0.5'%3E%3Cpath d='M10 8 Q10 30 28 30 Q46 30 46 8'/%3E%3Cpath d='M52 8 Q52 30 70 30 Q88 30 88 8'/%3E%3Cpath d='M10 50 Q10 72 28 72 Q46 72 46 50'/%3E%3Cpath d='M52 50 Q52 72 70 72 Q88 72 88 50'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--dark);}
+  #app{min-height:100vh;width:100%;position:relative;overflow-x:hidden;}
+  h1,h2,h3,.disp{font-family:'Lora',serif;font-weight:600;letter-spacing:-0.01em;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;border:none;}
+  input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;}
+  ::selection{background:var(--orange);color:var(--white);}
+
+  /* corporate naxış — S loqosunun sonsuz xətt (qatlanan lent) formasından alınan pattern */
+  .pattern-bg{
+    background-image: var(--sonno-pattern);
+    background-size: 84px 84px;
+  }
+  .logo-mark{display:block;flex-shrink:0;}
+
+  /* ---------- utility ---------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 26px;border-radius:100px;font-weight:700;font-size:15px;transition:transform .15s ease, box-shadow .15s ease, background .15s ease;}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--orange);color:var(--white);box-shadow:0 8px 20px -6px rgba(247,137,48,.55);}
+  .btn-primary:hover{background:#ff9b45;}
+  .btn-dark{background:var(--dark);color:var(--white);}
+  .btn-dark:hover{background:#1c2733;}
+  .btn-ghost{background:transparent;color:var(--dark);border:1.5px solid var(--line-soft);}
+  .btn-ghost:hover{border-color:var(--dark);}
+  .btn-ghost-light{background:transparent;color:var(--white);border:1.5px solid rgba(255,255,255,.25);}
+  .btn-ghost-light:hover{border-color:rgba(255,255,255,.6);}
+  .btn-green{background:var(--green);color:var(--white);}
+  .btn-green:hover{background:#00897a;}
+  .btn-sm{padding:10px 18px;font-size:13px;border-radius:100px;}
+  .btn-block{width:100%;}
+  .btn[disabled]{opacity:.45;pointer-events:none;}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:.02em;}
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+  .field label{font-size:12.5px;font-weight:700;color:var(--dark);opacity:.65;letter-spacing:.02em;text-transform:uppercase;}
+  .field input, .field select, .field textarea{padding:15px 16px;border-radius:12px;border:1.5px solid var(--line-soft);background:var(--white);font-size:15.5px;color:var(--dark);outline:none;transition:border-color .15s;}
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--orange);}
+  .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--line-soft);}
+  .container{max-width:1180px;margin:0 auto;padding:0 24px;}
+  .toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
+  .toast{background:var(--dark);color:#fff;padding:13px 22px;border-radius:100px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px -8px rgba(0,0,0,.5);animation:toastIn .25s ease;}
+  .toast.err{background:#8a2f2f;}
+  .toast.ok{background:var(--green-dk);}
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18);border-radius:8px;}
+
+  /* ---------- top nav (public) ---------- */
+  .pubnav{display:flex;align-items:center;justify-content:space-between;padding:22px 0;}
+  .brandmark{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:700;font-size:20px;letter-spacing:.02em;}
+  .brandmark .s{width:34px;height:34px;border-radius:9px;background:var(--dark);display:flex;align-items:center;justify-content:center;color:var(--orange);padding:6px;}
+  .brandmark .s svg{width:100%;height:100%;}
+  .brandmark{font-family:'Lora',serif;}
+
+  /* ---------- hero ---------- */
+  .hero{background:radial-gradient(120% 140% at 15% -10%, #1a3a37 0%, var(--dark) 46%);color:#fff;border-radius:28px;padding:56px 40px 44px;position:relative;overflow:hidden;}
+  .hero:before{content:"";position:absolute;right:-60px;top:-40px;width:320px;height:320px;background-image:var(--sonno-pattern);background-size:64px 64px;opacity:.16;-webkit-mask-image:radial-gradient(circle, #000 55%, transparent 78%);mask-image:radial-gradient(circle, #000 55%, transparent 78%);pointer-events:none;}
+  .grain{position:absolute;inset:0;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--orange);font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px;}
+  .hero h1{font-size:clamp(30px,5vw,46px);line-height:1.08;margin:0 0 14px;max-width:640px;}
+  .hero p.sub{color:var(--text-dim);font-size:16.5px;max-width:480px;line-height:1.6;margin:0 0 28px;}
+
+  /* countdown */
+  .cd-wrap{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:2;}
+  .cd-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);border-radius:14px;padding:14px 6px;min-width:74px;text-align:center;}
+  .cd-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:26px;color:var(--white);font-variant-numeric:tabular-nums;}
+  .cd-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
+
+  /* ticket card - signature element */
+  .ticket{position:relative;background:linear-gradient(135deg, var(--green-dk), var(--green) 130%);color:#fff;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;isolation:isolate;}
+  .ticket .patt{position:absolute;inset:0;background-image:var(--sonno-pattern);background-size:56px 56px;opacity:.14;pointer-events:none;}
+  .ticket:before,.ticket:after{content:"";position:absolute;width:22px;height:22px;background:var(--cream);border-radius:50%;top:50%;transform:translateY(-50%);z-index:2;}
+  .ticket:before{left:-11px;}
+  .ticket:after{right:-11px;}
+  .ticket .perf{position:absolute;left:26px;right:26px;top:50%;border-top:2px dashed rgba(255,255,255,.28);z-index:2;}
+  .ticket .tcode{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16.5px;letter-spacing:.03em;z-index:1;}
+  .ticket .ticon{font-size:20px;z-index:1;}
+
+  /* ---------- customer flow ---------- */
+  .steps{display:flex;gap:8px;margin-bottom:28px;}
+  .step-dot{flex:1;height:4px;border-radius:4px;background:var(--line-soft);}
+  .step-dot.active{background:var(--orange);}
+  .step-dot.done{background:var(--green);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr;}}
+  .prod-row{display:grid;grid-template-columns:1.6fr .7fr .9fr auto;gap:10px;align-items:end;margin-bottom:12px;}
+  @media(max-width:640px){.prod-row{grid-template-columns:1fr 1fr;}}
+  .prod-total{background:var(--cream);border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .icon-btn{width:38px;height:38px;border-radius:10px;background:#fde9d6;color:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;}
+  .icon-btn.rm{background:#fbe4e4;color:#a13a3a;}
+
+  /* ---------- admin ---------- */
+  .adm-shell{display:flex;min-height:100vh;background:var(--cream);}
+  .adm-side{width:236px;background:var(--dark);color:#fff;padding:22px 16px;display:flex;flex-direction:column;flex-shrink:0;position:relative;overflow:hidden;}
+  .adm-side:after{content:"";position:absolute;left:0;right:0;bottom:0;height:220px;background-image:var(--sonno-pattern);background-size:60px 60px;opacity:.05;-webkit-mask-image:linear-gradient(to top, #000, transparent);mask-image:linear-gradient(to top, #000, transparent);pointer-events:none;}
+  .adm-side > *{position:relative;z-index:1;}
+  .adm-nav-item{display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:11px;font-size:14px;font-weight:600;color:var(--text-dim);margin-bottom:2px;cursor:pointer;transition:.15s;}
+  .adm-nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .adm-nav-item.active{background:var(--orange);color:#fff;}
+  .adm-main{flex:1;padding:30px 34px;min-width:0;}
+  .adm-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi-card{background:#fff;border-radius:16px;padding:20px;border:1px solid var(--line-soft);}
+  .kpi-num{font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
+  .kpi-label{font-size:12.5px;color:rgba(17,24,32,.55);font-weight:600;margin-top:4px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:rgba(17,24,32,.5);font-weight:700;padding:10px 12px;border-bottom:1.5px solid var(--line-soft);white-space:nowrap;}
+  td{padding:13px 12px;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
+  tr:hover td{background:rgba(0,117,101,0.035);}
+  .badge{display:inline-flex;padding:4px 11px;border-radius:100px;font-size:11.5px;font-weight:700;}
+  .modal-bg{position:fixed;inset:0;background:rgba(17,24,32,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+  .modal{background:#fff;border-radius:20px;padding:30px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;}
+
+  .draw-stage{background:var(--dark);border-radius:24px;padding:50px 30px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+  .draw-roll{font-family:'JetBrains Mono',monospace;font-size:clamp(30px,6vw,52px);font-weight:700;color:var(--orange);letter-spacing:.05em;margin:24px 0;min-height:64px;}
+
+  .empty{text-align:center;padding:60px 20px;color:rgba(17,24,32,.45);}
+  .link-btn{background:none;border:none;color:var(--green);font-weight:700;font-size:13.5px;cursor:pointer;}
+  .footer-note{font-size:12px;color:rgba(17,24,32,.4);text-align:center;padding:30px 20px 50px;line-height:1.6;}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   SONNO — Müştəri Hədiyyə Çəkilişi Sistemi (real, Supabase-əsaslı versiya)
+   Deploy: Vercel (statik sayt) + Supabase (Postgres + Auth).
+   Aşağıdakı iki dəyəri Supabase layihənizin Settings → API bölməsindən
+   kopyalayıb yerləşdirin.
+   ========================================================================= */
+
+const SUPABASE_URL = "https://onyvlqycjlxefcihtoyp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ueXZscXljamx4ZWZjaWh0b3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNDk5OTgsImV4cCI6MjEwMTkyNTk5OH0.58JoRWQh-EKjBatEJTvTdaT_uJ5m2IJaYV9-3PdMxZ8";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DEMO_ORIGIN = window.location.origin; // deploy olunan real domen avtomatik istifadə olunur
+const TICKET_PRICE_STEP = 200;
+const DEFAULT_PRODUCTS = ['Stul','Divan','Kreslo','Masa','Şkaf','Mətbəx mebeli','Yataq dəsti','Aksesuar'];
+
+let DB = { campaigns:[], regs:[], winners:[], products:[], productRows:[] };
+let ADMIN_SESSION = null; // {email}
+let currentRoute = '';
+
+/* ---------------- Supabase <-> JS obyekt xəritələməsi ---------------- */
+function mapCampaign(r){
+  return { id:r.id, slug:r.slug, name:r.name, description:r.description||'', startDate:r.start_date, endDate:r.end_date, drawDate:r.draw_date, status:r.status, prizes:r.prizes||[], createdAt:new Date(r.created_at).getTime() };
+}
+function mapRegistration(r, tickets){
+  return { id:r.id, campaignId:r.campaign_id, firstName:r.first_name, lastName:r.last_name, phone:r.phone, city:r.city, store:r.store, purchaseDate:r.purchase_date, items:r.items||[], totalAmount:Number(r.total_amount), tickets: tickets||[], dupHash:r.dup_hash, createdAt:new Date(r.created_at).getTime() };
+}
+
+/* ---------------- ictimai (public) data — hər kəs oxuya bilər ---------------- */
+async function loadPublicData(){
+  const {data:camps, error:e1} = await sb.from('campaigns').select('*').order('created_at');
+  if(e1) console.error('campaigns load error', e1);
+  DB.campaigns = (camps||[]).map(mapCampaign);
+
+  const {data:prods, error:e2} = await sb.from('products').select('*').order('name');
+  if(e2) console.error('products load error', e2);
+  DB.productRows = prods || [];
+  DB.products = (prods&&prods.length) ? prods.map(p=>p.name) : DEFAULT_PRODUCTS;
+}
+
+/* ---------------- admin data — yalnız giriş etmiş istifadəçi üçün ---------------- */
+async function loadAdminData(){
+  const {data:regRows, error:e1} = await sb.from('registrations').select('*, tickets(id,ticket_code,status)').order('created_at',{ascending:false});
+  if(e1){ console.error('registrations load error', e1); DB.regs = []; }
+  else DB.regs = (regRows||[]).map(r => mapRegistration(r, (r.tickets||[]).map(t=>({ id:t.ticket_code, status:t.status, _dbId:t.id }))));
+
+  const {data:winRows, error:e2} = await sb.from('winners')
+    .select('*, registrations(first_name,last_name,phone,city,store,purchase_date,total_amount), tickets(ticket_code)')
+    .order('draw_time',{ascending:false});
+  if(e2){ console.error('winners load error', e2); DB.winners = []; }
+  else DB.winners = (winRows||[]).map(w => ({
+    id:w.id, campaignId:w.campaign_id, prizeId:w.prize_id, prizeName:w.prize_name, prizeOrder:w.prize_order,
+    ticketId: (w.tickets && w.tickets.ticket_code) || w.ticket_code, registrationId:w.registration_id,
+    firstName: w.registrations?.first_name, lastName: w.registrations?.last_name, phone: w.registrations?.phone,
+    city: w.registrations?.city, store: w.registrations?.store, purchaseDate: w.registrations?.purchase_date,
+    totalAmount: Number(w.registrations?.total_amount||0), drawTime: new Date(w.draw_time).getTime()
+  }));
+}
+
+async function adminSignIn(email, password){
+  const {data, error} = await sb.auth.signInWithPassword({email, password});
+  if(error) return {ok:false, msg: error.message==='Invalid login credentials' ? 'E-poçt və ya parol yanlışdır' : error.message};
+  ADMIN_SESSION = {email:data.user.email};
+  await loadAdminData();
+  return {ok:true};
+}
+async function adminSignOut(){ await sb.auth.signOut(); ADMIN_SESSION=null; DB.regs=[]; DB.winners=[]; }
+
+
+/* ---------------- brand mark ----------------
+   Qeyd: bu, brendbukdakı "qatlanan lent" S simvolunun sadələşdirilmiş,
+   əl ilə yenidən qurulmuş SVG təfsiridir (fayldan çıxarılmış dəqiq vektor
+   deyil) — rəng dəyişkənləri və ölçülər brendbuka uyğundur. */
+const LOGO_ORANGE = "data:image/png;base64,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";
+const LOGO_WHITE = "data:image/png;base64,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";
+/* Real SONNO loqo işarəsi (brend PDF-dən çıxarılıb). variant: 'orange' (standart, tünd kvadrat
+   üzərində) və ya 'white' (birbaşa tünd/rəngli fonun üstündə, kvadratsız). */
+function logoMark(variant){
+  if(variant==='white') return `<img src="${LOGO_WHITE}" alt="SONNO" style="width:100%;height:100%;object-fit:contain;">`;
+  return `<img src="${LOGO_ORANGE}" alt="SONNO" style="width:100%;height:100%;object-fit:contain;">`;
+}
+
+/* ---------------- utils ---------------- */
+function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4); }
+function fmtMoney(n){ return (Math.round(n*100)/100).toLocaleString('az-AZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ₼'; }
+function esc(s){ return (s===undefined||s===null) ? '' : String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg, type){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type||'');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+function existingTicketIds(){
+  const set = new Set();
+  DB.regs.forEach(r => (r.tickets||[]).forEach(t => set.add(t.id)));
+  return set;
+}
+function genTicketId(existing){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ambiguous chars removed
+  let id;
+  do{
+    let s = '';
+    for(let i=0;i<5;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    id = 'SONNO-26-' + s;
+  } while(existing.has(id));
+  existing.add(id);
+  return id;
+}
+function maskName(first,last){
+  const f = first ? first[0]+'***' : '***';
+  const l = last ? last[0]+'***' : '***';
+  return f + ' ' + l;
+}
+function maskPhone(p){
+  const digits = (p||'').replace(/[^0-9]/g,'');
+  if(digits.length < 6) return '+994 ** *** ** **';
+  const cc = digits.slice(0,3);
+  const last2 = digits.slice(-2);
+  return `+994 ** *** ** ${last2}`;
+}
+function slugify(s){ return (s||'').toLowerCase().trim().replace(/[^a-z0-9əöüğıçş\s-]/gi,'').replace(/[əıöüğçş]/g, m=>({ə:'e',ı:'i',ö:'o',ü:'u',ğ:'g',ç:'c',ş:'s'}[m])).replace(/\s+/g,'-').slice(0,40) || uid('c'); }
+function campaignUrl(slug){ return `${DEMO_ORIGIN}/#/campaign/${slug}`; }
+function findCampaign(idOrSlug){ return DB.campaigns.find(c=>c.id===idOrSlug || c.slug===idOrSlug); }
+function statusColor(st){
+  return {
+    'Hazırlanır':{bg:'#eef1f2',c:'#42545c'},
+    'Aktiv':{bg:'#e3f5ef',c:'#00695c'},
+    'Bağlanıb':{bg:'#fdece0',c:'#b5601a'},
+    'Çəkiliş mərhələsində':{bg:'#fde9d6',c:'#b5601a'},
+    'Tamamlanıb':{bg:'#111820',c:'#fff'}
+  }[st] || {bg:'#eee',c:'#333'};
+}
+function campaignStats(c){
+  const regs = DB.regs.filter(r=>r.campaignId===c.id);
+  const tickets = regs.reduce((a,r)=>a+(r.tickets||[]).length,0);
+  const amount = regs.reduce((a,r)=>a+(r.totalAmount||0),0);
+  const winners = DB.winners.filter(w=>w.campaignId===c.id);
+  const activeTickets = regs.reduce((a,r)=>a+(r.tickets||[]).filter(t=>t.status==='Aktiv').length,0);
+  return {regCount:regs.length, tickets, amount, winners:winners.length, activeTickets};
+}
+
+/* ---------------- routing ---------------- */
+window.addEventListener('hashchange', render);
+function nav(hash){ location.hash = hash; }
+
+async function boot(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(session){ ADMIN_SESSION = {email:session.user.email}; }
+
+  await loadPublicData();
+  if(ADMIN_SESSION) await loadAdminData();
+
+  sb.auth.onAuthStateChange((event, session)=>{
+    if(event==='SIGNED_OUT'){ ADMIN_SESSION=null; DB.regs=[]; DB.winners=[]; render(); }
+  });
+
+  render();
+}
+
+function App(html){ document.getElementById('app').innerHTML = html; window.scrollTo(0,0); }
+
+function render(){
+  const hash = location.hash.replace(/^#\/?/,'');
+  currentRoute = hash;
+  const parts = hash.split('/').filter(Boolean);
+
+  if(parts[0]==='admin'){
+    if(!ADMIN_SESSION){ return renderAdminLogin(); }
+    if(!parts[1]) return renderAdminDashboard();
+    if(parts[1]==='campaigns') return renderAdminCampaigns();
+    if(parts[1]==='campaign' && parts[2]) return renderAdminCampaignEdit(parts[2]);
+    if(parts[1]==='customers') return renderAdminCustomers();
+    if(parts[1]==='draw' && parts[2]) return renderAdminDraw(parts[2]);
+    if(parts[1]==='archive') return renderAdminArchive();
+    if(parts[1]==='products') return renderAdminProducts();
+    return renderAdminDashboard();
+  }
+  if(parts[0]==='campaign' && parts[1]){
+    if(parts[2]==='qaliblər' || parts[2]==='winners') return renderPublicWinners(parts[1]);
+    return renderCustomerFlow(parts[1]);
+  }
+  return renderHome();
+}
+
+/* ============================================================
+   HOME (demo entry)
+   ============================================================ */
+function renderHome(){
+  const active = DB.campaigns.filter(c=>c.status==='Aktiv');
+  App(`
+  <div class="container" style="padding-top:26px;">
+    <div class="pubnav">
+      <div class="brandmark"><div class="s">${logoMark()}</div>SONNO</div>
+      <a href="#/admin" class="btn btn-ghost btn-sm">İdarə paneli</a>
+    </div>
+    <div class="hero">
+      <div class="grain"></div>
+      <div style="position:relative;z-index:2;">
+        <div class="eyebrow">● Müştəri Hədiyyə Çəkilişi</div>
+        <h1>SONNO evinizə yaraşır.<br>Hədiyyə isə sizə.</h1>
+        <p class="sub">Mağazadan SONNO məhsulu alın, qəbzinizdəki QR kodu skan edin və avtomatik çekiliş biletlərinizi qazanın.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          ${active.map(c=>`<a href="#/campaign/${c.slug}" class="btn btn-primary">${esc(c.name)} — Daxil ol</a>`).join('') || '<span class="btn btn-ghost-light" style="opacity:.6">Hazırda aktiv kampaniya yoxdur</span>'}
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:34px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      ${['200 ₼ alış = 1 bilet','Avtomatik, unikal biletlər','Şəffaf, audit edilə bilən çəkiliş'].map((t,i)=>`
+        <div class="card" style="padding:22px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:${i===1?'#fde9d6':'#e3f5ef'};color:${i===1?'var(--orange-dim)':'var(--green)'};display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:12px;">${i+1}</div>
+          <div style="font-weight:700;font-size:15px;">${t}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="footer-note">SONNO Müştəri Hədiyyə Çəkilişi Sistemi — © ${new Date().getFullYear()}</div>
+  </div>`);
+}
+
+/* ============================================================
+   CUSTOMER FLOW
+   ============================================================ */
+let CF_STATE = {}; // per-render transient state for the form
+function renderCustomerFlow(slug){
+  const c = findCampaign(slug);
+  if(!c){
+    App(`<div class="container" style="padding-top:80px;"><div class="empty"><h2>Kampaniya tapılmadı</h2><p>Bu linkə uyğun aktiv kampaniya yoxdur.</p><a href="#/" class="btn btn-dark" style="margin-top:14px;">Ana səhifə</a></div></div>`);
+    return;
+  }
+  if(!CF_STATE.campaignId || CF_STATE.campaignId !== c.id){
+    CF_STATE = { campaignId:c.id, step: c.status==='Aktiv' ? 'form':'closed', items:[{id:uid('it'),product:DB.products[0]||'Stul',qty:1,price:0}], consent:false, submitted:null };
+  }
+
+  if(c.status!=='Aktiv' && CF_STATE.step!=='result'){
+    App(publicShell(c, `
+      <div class="empty">
+        <div style="font-size:38px;">🔒</div>
+        <h2 style="margin-top:10px;">${c.status==='Hazırlanır'?'Kampaniya hələ başlamayıb':'Bu kampaniya artıq bağlıdır'}</h2>
+        <p>Nəticələri görmək üçün qaliblər səhifəsinə keçə bilərsiniz.</p>
+        <a href="#/campaign/${c.slug}/winners" class="btn btn-dark" style="margin-top:14px;">Qalibləri gör</a>
+      </div>`));
+    return;
+  }
+
+  if(CF_STATE.step==='result'){
+    return renderTicketsResult(c, CF_STATE.submitted);
+  }
+
+  const total = CF_STATE.items.reduce((a,it)=>a+(it.qty*it.price||0),0);
+  const ticketCount = Math.floor(total / TICKET_PRICE_STEP);
+
+  App(publicShell(c, `
+    <div class="steps"><div class="step-dot active"></div><div class="step-dot"></div></div>
+    <h2 style="margin:0 0 6px;">Məlumatlarınızı daxil edin</h2>
+    <p style="color:rgba(17,24,32,.55);margin:0 0 22px;font-size:14.5px;">1–2 dəqiqə çəkəcək. Bütün sahələr tələb olunur.</p>
+
+    <form id="custForm">
+      <div class="grid2">
+        <div class="field"><label>Ad</label><input required name="firstName" placeholder="Nurlan"></div>
+        <div class="field"><label>Soyad</label><input required name="lastName" placeholder="Əsgərov"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Telefon nömrəsi</label><input required name="phone" placeholder="+994 XX XXX XX XX"></div>
+        <div class="field"><label>Şəhər</label><input required name="city" placeholder="Bakı"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Alış etdiyi mağaza</label><input required name="store" placeholder="SONNO 28 May"></div>
+        <div class="field"><label>Alış tarixi</label><input required type="date" name="purchaseDate" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+
+      <div style="margin-top:8px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;font-size:18px;">Aldığınız məhsullar</h3>
+        <button type="button" id="addProdBtn" class="btn btn-ghost btn-sm">+ Məhsul əlavə et</button>
+      </div>
+      <div id="prodList"></div>
+
+      <div class="prod-total">
+        <div>
+          <div style="font-size:12.5px;color:rgba(17,24,32,.55);font-weight:700;text-transform:uppercase;">Ümumi məbləğ</div>
+          <div class="disp" style="font-size:24px;" id="totalAmountLbl">${fmtMoney(total)}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12.5px;color:rgba(17,24,32,.55);font-weight:700;text-transform:uppercase;">Çekiliş biletiniz</div>
+          <div class="disp" style="font-size:24px;color:var(--green);" id="ticketCountLbl">${ticketCount} bilet</div>
+        </div>
+      </div>
+
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:20px 0 6px;font-size:13px;color:rgba(17,24,32,.7);line-height:1.55;">
+        <input type="checkbox" required name="consent" style="margin-top:3px;">
+        Şəxsi məlumatlarımın kampaniyada iştirak, qalibin müəyyən edilməsi və mənimlə əlaqə saxlanılması məqsədilə işlənməsinə razıyam.
+      </label>
+
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;padding:17px;">Qeydiyyatı tamamla</button>
+    </form>
+  `));
+
+  renderProdRows();
+  document.getElementById('addProdBtn').onclick = ()=>{
+    CF_STATE.items.push({id:uid('it'),product:DB.products[0]||'Stul',qty:1,price:0});
+    renderProdRows();
+  };
+  document.getElementById('custForm').addEventListener('submit', onCustomerSubmit);
+}
+
+function publicShell(c, inner){
+  const stats = campaignStats(c);
+  return `
+  <div class="container" style="padding-top:26px;padding-bottom:60px;max-width:760px;">
+    <div class="pubnav">
+      <a href="#/" class="brandmark"><div class="s">${logoMark()}</div>SONNO</a>
+      <span class="pill" style="background:#e3f5ef;color:var(--green-dk);">${esc(c.name)}</span>
+    </div>
+    ${countdownHero(c)}
+    <div class="card" style="padding:30px;margin-top:22px;">
+      ${inner}
+    </div>
+  </div>`;
+}
+
+function countdownHero(c){
+  return `
+  <div class="hero" style="padding:32px 28px;">
+    <div class="grain"></div>
+    <div style="position:relative;z-index:2;">
+      <div class="eyebrow">● Çəkilişə qalan vaxt</div>
+      <div class="cd-wrap" id="cdWrap" data-target="${esc(c.drawDate)}">
+        <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Gün</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Saat</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Dəqiqə</div></div>
+        <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Saniyə</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+function startCountdownTicker(){
+  clearInterval(window.__cdTimer);
+  window.__cdTimer = setInterval(()=>{
+    const wrap = document.getElementById('cdWrap');
+    if(!wrap){ clearInterval(window.__cdTimer); return; }
+    const target = new Date(wrap.dataset.target).getTime();
+    const diff = Math.max(0, target - Date.now());
+    const d = Math.floor(diff/86400000), h = Math.floor(diff/3600000)%24, m = Math.floor(diff/60000)%60, s = Math.floor(diff/1000)%60;
+    const set = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = String(v).padStart(2,'0'); };
+    set('cd-d',d); set('cd-h',h); set('cd-m',m); set('cd-s',s);
+  }, 1000);
+}
+
+function renderProdRows(){
+  const list = document.getElementById('prodList');
+  if(!list) return;
+  list.innerHTML = CF_STATE.items.map((it,idx)=>`
+    <div class="prod-row" data-idx="${idx}">
+      <div class="field" style="margin:0;"><label>Məhsul</label>
+        <select class="it-product">${DB.products.map(p=>`<option ${p===it.product?'selected':''}>${esc(p)}</option>`).join('')}</select>
+      </div>
+      <div class="field" style="margin:0;"><label>Miqdar</label><input type="number" min="1" class="it-qty" value="${it.qty}"></div>
+      <div class="field" style="margin:0;"><label>1 ədəd (₼)</label><input type="number" min="0" step="0.01" class="it-price" value="${it.price||''}"></div>
+      <button type="button" class="icon-btn rm it-rm" title="Sil" ${CF_STATE.items.length===1?'style="opacity:.3;pointer-events:none;"':''}>✕</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('.prod-row').forEach(row=>{
+    const idx = +row.dataset.idx;
+    row.querySelector('.it-product').onchange = e=>{ CF_STATE.items[idx].product = e.target.value; };
+    row.querySelector('.it-qty').oninput = e=>{ CF_STATE.items[idx].qty = +e.target.value||0; updateTotals(); };
+    row.querySelector('.it-price').oninput = e=>{ CF_STATE.items[idx].price = +e.target.value||0; updateTotals(); };
+    row.querySelector('.it-rm').onclick = ()=>{ CF_STATE.items.splice(idx,1); renderProdRows(); updateTotals(); };
+  });
+}
+function updateTotals(){
+  const total = CF_STATE.items.reduce((a,it)=>a+(it.qty*it.price||0),0);
+  const ticketCount = Math.floor(total / TICKET_PRICE_STEP);
+  const tEl = document.getElementById('totalAmountLbl'); if(tEl) tEl.textContent = fmtMoney(total);
+  const cEl = document.getElementById('ticketCountLbl'); if(cEl) cEl.textContent = ticketCount + ' bilet';
+}
+
+function genTicketId(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ambiguous simvollar çıxarılıb
+  let s = '';
+  for(let i=0;i<5;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return 'SONNO-26-' + s;
+}
+
+async function onCustomerSubmit(e){
+  e.preventDefault();
+  const c = findCampaign(CF_STATE.campaignId);
+  const fd = new FormData(e.target);
+  const items = CF_STATE.items.filter(it=>it.qty>0 && it.price>0);
+  if(items.length===0){ toast('Ən azı bir məhsul daxil edin', 'err'); return; }
+  const total = items.reduce((a,it)=>a+it.qty*it.price,0);
+  const ticketCount = Math.floor(total / TICKET_PRICE_STEP);
+  if(ticketCount < 1){ toast('Bilet qazanmaq üçün minimum 200 ₼ alış lazımdır', 'err'); return; }
+
+  const phone = fd.get('phone').trim();
+  const store = fd.get('store').trim();
+  const purchaseDate = fd.get('purchaseDate');
+  const firstName = fd.get('firstName').trim();
+  const lastName = fd.get('lastName').trim();
+  const city = fd.get('city').trim();
+  const dupHash = `${phone}|${store}|${purchaseDate}|${total}|${c.id}`.toLowerCase();
+
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Göndərilir...'; }
+
+  const regId = crypto.randomUUID();
+  const {error: regErr} = await sb.from('registrations').insert({
+    id: regId, campaign_id: c.id, first_name: firstName, last_name: lastName,
+    phone, city, store, purchase_date: purchaseDate, items, total_amount: total, dup_hash: dupHash
+  });
+  if(regErr){
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Qeydiyyatı tamamla'; }
+    if(regErr.code === '23505'){ toast('Bu alış artıq sistemdə qeydiyyatdan keçirilib.', 'err'); }
+    else { toast('Xəta: '+regErr.message, 'err'); }
+    return;
+  }
+
+  // Hər bilet üçün DB-də UNIQUE constraint var — toqquşma (nadir) halında yenidən cəhd edilir
+  const tickets = [];
+  for(let i=0;i<ticketCount;i++){
+    let inserted = false;
+    for(let attempt=0; attempt<6 && !inserted; attempt++){
+      const code = genTicketId();
+      const {error: tErr} = await sb.from('tickets').insert({ id: crypto.randomUUID(), ticket_code: code, campaign_id: c.id, registration_id: regId, status:'Aktiv' });
+      if(!tErr){ tickets.push({id:code, status:'Aktiv'}); inserted = true; }
+      else if(tErr.code !== '23505'){ console.error('ticket insert error', tErr); break; }
+    }
+  }
+
+  const reg = { id:regId, campaignId:c.id, firstName, lastName, phone, city, store, purchaseDate, items, totalAmount: total, tickets, dupHash, createdAt: Date.now() };
+
+  CF_STATE.step = 'result';
+  CF_STATE.submitted = reg;
+  renderTicketsResult(c, reg);
+}
+
+function renderTicketsResult(c, reg){
+  App(publicShell(c, `
+    <div style="text-align:center;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#e3f5ef;color:var(--green-dk);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px;">✓</div>
+      <h2 style="margin:0 0 6px;">Qeydiyyatınız uğurla tamamlandı</h2>
+      <p style="color:rgba(17,24,32,.55);margin:0 0 26px;">${esc(reg.firstName)}, ${fmtMoney(reg.totalAmount)} alışınız üçün <b>${reg.tickets.length}</b> unikal çekiliş bileti yaradıldı.</p>
+    </div>
+    <div style="text-align:left;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(17,24,32,.5);margin-bottom:10px;">Sizin çəkiliş biletləriniz</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${reg.tickets.map((t,i)=>`
+        <div class="ticket" style="animation:tIn .4s ease ${i*0.06}s both;">
+          <div class="patt"></div>
+          <div class="ticon">🎟</div>
+          <div class="tcode">${t.id}</div>
+          <div class="perf"></div>
+        </div>`).join('')}
+    </div>
+    <style>@keyframes tIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}</style>
+    <div style="display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;">
+      <a href="#/campaign/${c.slug}/winners" class="btn btn-ghost btn-sm">Qalibləri gör</a>
+      <a href="#/" class="btn btn-dark btn-sm">Ana səhifə</a>
+    </div>
+  `));
+  startCountdownTicker();
+}
+
+/* ============================================================
+   PUBLIC WINNERS PAGE
+   ============================================================ */
+async function renderPublicWinners(slug){
+  const c = findCampaign(slug);
+  if(!c){ App(`<div class="container" style="padding-top:80px;"><div class="empty"><h2>Kampaniya tapılmadı</h2></div></div>`); return; }
+  const {data, error} = await sb.from('winners_public').select('*').eq('campaign_id', c.id).order('prize_order');
+  if(error) console.error('winners_public load error', error);
+  const winners = (data||[]);
+  App(`
+  <div class="container" style="padding-top:26px;padding-bottom:60px;max-width:760px;">
+    <div class="pubnav"><a href="#/" class="brandmark"><div class="s">${logoMark()}</div>SONNO</a></div>
+    <div class="hero" style="padding:34px 28px;text-align:center;">
+      <div class="grain"></div>
+      <div style="position:relative;z-index:2;">
+        <div class="eyebrow" style="justify-content:center;">🏆 Nəticələr</div>
+        <h1 style="font-size:28px;">${esc(c.name)} qalibləri</h1>
+      </div>
+    </div>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+      ${winners.length? winners.map(w=>`
+        <div class="card" style="padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:14px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--orange-dim);letter-spacing:.04em;">${esc(w.prize_name)}</div>
+            <div class="disp" style="font-size:19px;margin-top:2px;">${esc(w.first_name_masked)} ${esc(w.last_name_masked)}</div>
+            <div class="mono" style="font-size:12.5px;color:rgba(17,24,32,.5);margin-top:2px;">${esc(w.phone_masked)}</div>
+          </div>
+          <div class="pill" style="background:#e3f5ef;color:var(--green-dk);">🎟 ${esc(w.ticket_code.slice(-5))}</div>
+        </div>`).join('') : `<div class="empty">Çəkiliş hələ keçirilməyib. Nəticələr bura əlavə olunacaq.</div>`}
+    </div>
+    <div class="footer-note">Məxfilik səbəbindən qaliblərin tam əlaqə məlumatı yalnız SONNO admin komandasına görünür.</div>
+  </div>`);
+}
+
+/* ============================================================
+   ADMIN — LOGIN
+   ============================================================ */
+function renderAdminLogin(){
+  App(`
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark);padding:20px;">
+    <div class="card" style="max-width:380px;width:100%;padding:34px;">
+      <div class="brandmark" style="margin-bottom:22px;">
+        <div class="s" style="background:var(--dark);">${logoMark()}</div>SONNO <span style="font-weight:500;font-size:14px;color:rgba(17,24,32,.5);">İdarə paneli</span>
+      </div>
+      <form id="loginForm">
+        <div class="field"><label>E-poçt</label><input type="email" name="email" placeholder="admin@sonno.az" required autocomplete="username"></div>
+        <div class="field"><label>Parol</label><input type="password" name="password" placeholder="••••••••" required autocomplete="current-password"></div>
+        <button class="btn btn-dark btn-block" id="loginBtn" style="padding:15px;">Daxil ol</button>
+      </form>
+      <div style="font-size:12px;color:rgba(17,24,32,.45);margin-top:16px;text-align:center;">Admin istifadəçisini Supabase Dashboard → Authentication → Users bölməsindən yaradın.</div>
+      <a href="#/" style="display:block;text-align:center;margin-top:14px;font-size:13px;color:rgba(17,24,32,.5);">← Ana səhifəyə qayıt</a>
+    </div>
+  </div>`);
+  document.getElementById('loginForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Yoxlanılır...';
+    const result = await adminSignIn(fd.get('email').trim(), fd.get('password'));
+    if(!result.ok){ toast(result.msg, 'err'); btn.disabled=false; btn.textContent='Daxil ol'; return; }
+    render();
+  };
+}
+
+function adminShell(active, inner){
+  const items = [
+    ['','İdarə paneli','📊'],['campaigns','Kampaniyalar','🎯'],['customers','Müştərilər','👥'],
+    ['products','Məhsullar','🛋'],['archive','Arxiv','🗂'],
+  ];
+  return `
+  <div class="adm-shell">
+    <div class="adm-side">
+      <div class="brandmark" style="color:#fff;margin-bottom:26px;padding:0 10px;"><div class="s">${logoMark()}</div>SONNO</div>
+      ${items.map(([r,label,icon])=>`<a class="adm-nav-item ${active===r?'active':''}" href="#/admin${r?'/'+r:''}">${icon} ${label}</a>`).join('')}
+      <div style="flex:1;"></div>
+      <div style="padding:12px 10px;font-size:12px;color:rgba(255,255,255,.4);word-break:break-all;">${esc(ADMIN_SESSION?.email||'')}</div>
+      <button id="logoutBtn" class="adm-nav-item" style="background:rgba(255,255,255,.05);">↩ Çıxış</button>
+    </div>
+    <div class="adm-main">${inner}</div>
+  </div>`;
+}
+function bindAdminShellEvents(){
+  const b = document.getElementById('logoutBtn');
+  if(b) b.onclick = async ()=>{ await adminSignOut(); nav('#/'); };
+}
+
+/* ---------------- admin dashboard ---------------- */
+function renderAdminDashboard(){
+  const totalCamps = DB.campaigns.filter(c=>c.status==='Aktiv').length;
+  const allRegs = DB.regs.length;
+  const allAmount = DB.regs.reduce((a,r)=>a+r.totalAmount,0);
+  const allTickets = DB.regs.reduce((a,r)=>a+r.tickets.length,0);
+  const activeTickets = DB.regs.reduce((a,r)=>a+r.tickets.filter(t=>t.status==='Aktiv').length,0);
+  const winners = DB.winners.length;
+  const today = new Date().toDateString();
+  const todayRegs = DB.regs.filter(r=>new Date(r.createdAt).toDateString()===today).length;
+  const last7 = DB.regs.filter(r=>Date.now()-r.createdAt < 7*86400000).length;
+  const last30 = DB.regs.filter(r=>Date.now()-r.createdAt < 30*86400000).length;
+
+  App(adminShell('', `
+    <div class="adm-topbar"><h2 style="margin:0;">İdarə paneli</h2><a href="#/admin/campaigns" class="btn btn-primary btn-sm">+ Kampaniya yarat</a></div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-num">${totalCamps}</div><div class="kpi-label">Aktiv kampaniya</div></div>
+      <div class="kpi-card"><div class="kpi-num">${allRegs}</div><div class="kpi-label">Ümumi iştirakçı</div></div>
+      <div class="kpi-card"><div class="kpi-num">${fmtMoney(allAmount)}</div><div class="kpi-label">Ümumi satış məbləği</div></div>
+      <div class="kpi-card"><div class="kpi-num">${allTickets}</div><div class="kpi-label">Yaradılmış bilet</div></div>
+      <div class="kpi-card"><div class="kpi-num">${activeTickets}</div><div class="kpi-label">Aktiv bilet</div></div>
+      <div class="kpi-card"><div class="kpi-num">${winners}</div><div class="kpi-label">Qalib sayı</div></div>
+      <div class="kpi-card"><div class="kpi-num">${todayRegs}</div><div class="kpi-label">Bu gün qeydiyyat</div></div>
+      <div class="kpi-card"><div class="kpi-num">${last7} / ${last30}</div><div class="kpi-label">Son 7 gün / 30 gün</div></div>
+    </div>
+    <div class="card" style="padding:22px;">
+      <h3 style="margin:0 0 14px;font-size:16px;">Kampaniyalar</h3>
+      ${DB.campaigns.length ? campaignsTable(DB.campaigns) : `<div class="empty">Hələ kampaniya yaradılmayıb.</div>`}
+    </div>
+  `));
+  bindAdminShellEvents();
+}
+
+function campaignsTable(camps){
+  return `<table><thead><tr><th>Kampaniya</th><th>Status</th><th>İştirakçı</th><th>Bilet</th><th>Məbləğ</th><th>Çəkiliş tarixi</th><th></th></tr></thead><tbody>
+    ${camps.map(c=>{
+      const s = campaignStats(c); const sc = statusColor(c.status);
+      return `<tr>
+        <td><b>${esc(c.name)}</b><div style="font-size:11.5px;color:rgba(17,24,32,.45);" class="mono">/${esc(c.slug)}</div></td>
+        <td><span class="badge" style="background:${sc.bg};color:${sc.c};">${esc(c.status)}</span></td>
+        <td>${s.regCount}</td>
+        <td>${s.tickets}</td>
+        <td>${fmtMoney(s.amount)}</td>
+        <td>${new Date(c.drawDate).toLocaleString('az-AZ',{dateStyle:'medium',timeStyle:'short'})}</td>
+        <td style="text-align:right;"><a href="#/admin/campaign/${c.id}" class="link-btn">İdarə et →</a></td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+/* ---------------- admin: campaigns list ---------------- */
+function renderAdminCampaigns(){
+  App(adminShell('campaigns', `
+    <div class="adm-topbar"><h2 style="margin:0;">Kampaniyalar</h2><button id="newCampBtn" class="btn btn-primary btn-sm">+ Yeni kampaniya</button></div>
+    <div class="card" style="padding:22px;">
+      ${DB.campaigns.length ? campaignsTable(DB.campaigns.filter(c=>c.status!=='Tamamlanıb')) : `<div class="empty">Hələ kampaniya yaradılmayıb.</div>`}
+    </div>
+  `));
+  bindAdminShellEvents();
+  document.getElementById('newCampBtn').onclick = openNewCampaignModal;
+}
+
+function openNewCampaignModal(){
+  const bg = document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML = `<div class="modal">
+    <h3 style="margin-top:0;">Yeni kampaniya yarat</h3>
+    <form id="newCampForm">
+      <div class="field"><label>Kampaniya adı</label><input required name="name" placeholder="SONNO 2026 Payız Kampaniyası"></div>
+      <div class="field"><label>Təsvir</label><textarea name="description" rows="2" placeholder="Qısa təsvir"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label>Başlanğıc tarixi</label><input required type="date" name="startDate"></div>
+        <div class="field"><label>Bitmə tarixi</label><input required type="date" name="endDate"></div>
+      </div>
+      <div class="field"><label>Çəkiliş tarixi və vaxtı</label><input required type="datetime-local" name="drawDate"></div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="button" class="btn btn-ghost btn-block" id="cancelModal">Ləğv et</button>
+        <button class="btn btn-primary btn-block">Yarat</button>
+      </div>
+    </form>
+  </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#cancelModal').onclick = ()=>bg.remove();
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
+  bg.querySelector('#newCampForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = fd.get('name').trim();
+    const slug = slugify(name) + '-' + Math.random().toString(36).slice(2,5);
+    const {data, error} = await sb.from('campaigns').insert({
+      slug, name, description: fd.get('description').trim(),
+      start_date: fd.get('startDate'), end_date: fd.get('endDate'),
+      draw_date: new Date(fd.get('drawDate')).toISOString(),
+      status:'Hazırlanır', prizes:[]
+    }).select().single();
+    if(error){ toast('Xəta: '+error.message, 'err'); return; }
+    const c = mapCampaign(data);
+    DB.campaigns.push(c);
+    bg.remove();
+    toast('Kampaniya yaradıldı', 'ok');
+    nav('#/admin/campaign/'+c.id);
+  };
+}
+
+/* ---------------- admin: campaign edit (dates, prizes, QR, status) ---------------- */
+function renderAdminCampaignEdit(id){
+  const c = findCampaign(id);
+  if(!c){ nav('#/admin/campaigns'); return; }
+  const s = campaignStats(c);
+  const url = campaignUrl(c.slug);
+  const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=14&color=17-24-32&bgcolor=255-255-255&data=${encodeURIComponent(url)}`;
+
+  App(adminShell('campaigns', `
+    <div class="adm-topbar">
+      <div>
+        <a href="#/admin/campaigns" style="font-size:12.5px;color:rgba(17,24,32,.5);">← Kampaniyalar</a>
+        <h2 style="margin:6px 0 0;">${esc(c.name)}</h2>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <select id="statusSel" style="border-radius:100px;padding:10px 16px;border:1.5px solid var(--line-soft);font-weight:700;font-size:13px;">
+          ${['Hazırlanır','Aktiv','Bağlanıb','Çəkiliş mərhələsində','Tamamlanıb'].map(st=>`<option ${c.status===st?'selected':''}>${st}</option>`).join('')}
+        </select>
+        ${s.activeTickets>0 && c.status!=='Tamamlanıb' ? `<a href="#/admin/draw/${c.id}" class="btn btn-green btn-sm">🎲 Çəkiliş Mərkəzi</a>`:''}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start;">
+      <div>
+        <div class="card" style="padding:22px;margin-bottom:16px;">
+          <h3 style="margin:0 0 14px;font-size:15px;">Əsas məlumatlar</h3>
+          <form id="basicForm">
+            <div class="field"><label>Kampaniya adı</label><input name="name" value="${esc(c.name)}"></div>
+            <div class="field"><label>Təsvir</label><textarea name="description" rows="2">${esc(c.description||'')}</textarea></div>
+            <div class="grid2">
+              <div class="field"><label>Başlanğıc</label><input type="date" name="startDate" value="${esc(c.startDate)}"></div>
+              <div class="field"><label>Bitmə</label><input type="date" name="endDate" value="${esc(c.endDate)}"></div>
+            </div>
+            <div class="field"><label>Çəkiliş tarixi və vaxtı</label><input type="datetime-local" name="drawDate" value="${new Date(c.drawDate).toISOString().slice(0,16)}"></div>
+            <button class="btn btn-dark btn-sm">Yadda saxla</button>
+          </form>
+        </div>
+
+        <div class="card" style="padding:22px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="margin:0;font-size:15px;">Hədiyyələr</h3>
+            <button id="addPrizeBtn" class="btn btn-ghost btn-sm">+ Hədiyyə əlavə et</button>
+          </div>
+          ${c.prizes.length? `<table><thead><tr><th>Sıra</th><th>Ad</th><th>Say</th><th>Dəyər</th><th>Qalib sayı</th><th></th></tr></thead><tbody>
+            ${c.prizes.sort((a,b)=>a.order-b.order).map(p=>`<tr>
+              <td>${p.order}</td><td><b>${esc(p.name)}</b><div style="font-size:12px;color:rgba(17,24,32,.5);">${esc(p.description||'')}</div></td>
+              <td>${p.quantity}</td><td>${esc(p.value||'—')}</td><td>${p.winnerCount}</td>
+              <td style="text-align:right;"><button class="link-btn rmPrize" data-id="${p.id}">Sil</button></td>
+            </tr>`).join('')}
+          </tbody></table>` : `<div class="empty">Hələ hədiyyə əlavə edilməyib.</div>`}
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="padding:22px;text-align:center;margin-bottom:16px;">
+          <h3 style="margin:0 0 12px;font-size:15px;">Kampaniya QR kodu</h3>
+          <img src="${qrImg}" alt="QR" style="width:100%;max-width:220px;border-radius:14px;border:1px solid var(--line-soft);"/>
+          <div class="mono" style="font-size:11.5px;color:rgba(17,24,32,.5);margin:12px 0;word-break:break-all;">${esc(url)}</div>
+          <div style="display:flex;gap:8px;">
+            <a href="${qrImg}" target="_blank" class="btn btn-ghost btn-sm btn-block">PNG aç / yüklə</a>
+            <button id="copyLinkBtn" class="btn btn-dark btn-sm btn-block">Linki kopyala</button>
+          </div>
+          <div style="font-size:11.5px;color:rgba(17,24,32,.45);margin-top:10px;">Çap üçün: yüksək ölçüdə (400×400+) yükləyin, logo ilə çap materialına yerləşdirin.</div>
+        </div>
+        <div class="card" style="padding:22px;">
+          <h3 style="margin:0 0 10px;font-size:15px;">Statistika</h3>
+          <div style="display:flex;flex-direction:column;gap:9px;font-size:14px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(17,24,32,.5);">İştirakçı</span><b>${s.regCount}</b></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(17,24,32,.5);">Ümumi bilet</span><b>${s.tickets}</b></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(17,24,32,.5);">Aktiv bilet</span><b>${s.activeTickets}</b></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(17,24,32,.5);">Satış məbləği</span><b>${fmtMoney(s.amount)}</b></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:rgba(17,24,32,.5);">Qalib sayı</span><b>${s.winners}</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `));
+  bindAdminShellEvents();
+
+  document.getElementById('statusSel').onchange = async (e)=>{
+    const newStatus = e.target.value;
+    const {error} = await sb.from('campaigns').update({status:newStatus}).eq('id', c.id);
+    if(error){ toast('Xəta: '+error.message,'err'); return; }
+    c.status = newStatus; toast('Status yeniləndi','ok'); renderAdminCampaignEdit(id);
+  };
+  document.getElementById('basicForm').onsubmit = async (e)=>{
+    e.preventDefault(); const fd = new FormData(e.target);
+    const patch = { name: fd.get('name'), description: fd.get('description'), start_date: fd.get('startDate'), end_date: fd.get('endDate'), draw_date: new Date(fd.get('drawDate')).toISOString() };
+    const {error} = await sb.from('campaigns').update(patch).eq('id', c.id);
+    if(error){ toast('Xəta: '+error.message,'err'); return; }
+    Object.assign(c, { name:patch.name, description:patch.description, startDate:patch.start_date, endDate:patch.end_date, drawDate:patch.draw_date });
+    toast('Yadda saxlandı','ok'); renderAdminCampaignEdit(id);
+  };
+  document.getElementById('copyLinkBtn').onclick = ()=>{ navigator.clipboard?.writeText(url); toast('Link kopyalandı','ok'); };
+  document.getElementById('addPrizeBtn').onclick = ()=>openPrizeModal(c);
+  bg_bindRmPrize(c);
+
+  function bg_bindRmPrize(c){
+    document.querySelectorAll('.rmPrize').forEach(btn=>{
+      btn.onclick = async ()=>{
+        const newPrizes = c.prizes.filter(p=>p.id!==btn.dataset.id);
+        const {error} = await sb.from('campaigns').update({prizes:newPrizes}).eq('id', c.id);
+        if(error){ toast('Xəta: '+error.message,'err'); return; }
+        c.prizes = newPrizes; renderAdminCampaignEdit(id);
+      };
+    });
+  }
+}
+function openPrizeModal(c){
+  const bg = document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML = `<div class="modal">
+    <h3 style="margin-top:0;">Hədiyyə əlavə et</h3>
+    <form id="prizeForm">
+      <div class="field"><label>Hədiyyənin adı</label><input required name="name" placeholder="iPhone 17 Pro"></div>
+      <div class="field"><label>Təsvir</label><input name="description" placeholder="256GB"></div>
+      <div class="grid2">
+        <div class="field"><label>Sayı</label><input required type="number" min="1" name="quantity" value="1"></div>
+        <div class="field"><label>Dəyəri</label><input name="value" placeholder="2600 AZN"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Qalib sayı</label><input required type="number" min="1" name="winnerCount" value="1"></div>
+        <div class="field"><label>Çəkiliş sırası</label><input required type="number" min="1" name="order" value="${(c.prizes.length||0)+1}"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="button" class="btn btn-ghost btn-block" id="cancelPrize">Ləğv et</button>
+        <button class="btn btn-primary btn-block">Əlavə et</button>
+      </div>
+    </form>
+  </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#cancelPrize').onclick = ()=>bg.remove();
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
+  bg.querySelector('#prizeForm').onsubmit = async (e)=>{
+    e.preventDefault(); const fd = new FormData(e.target);
+    const newPrizes = [...c.prizes, { id:uid('pz'), name:fd.get('name'), description:fd.get('description'), image:'', quantity:+fd.get('quantity'), value:fd.get('value'), winnerCount:+fd.get('winnerCount'), order:+fd.get('order') }];
+    const {error} = await sb.from('campaigns').update({prizes:newPrizes}).eq('id', c.id);
+    if(error){ toast('Xəta: '+error.message,'err'); return; }
+    c.prizes = newPrizes;
+    bg.remove(); toast('Hədiyyə əlavə olundu','ok');
+    renderAdminCampaignEdit(c.id);
+  };
+}
+
+/* ---------------- admin: products ---------------- */
+function renderAdminProducts(){
+  App(adminShell('products', `
+    <div class="adm-topbar"><h2 style="margin:0;">Məhsul kataloqu</h2></div>
+    <div class="card" style="padding:22px;max-width:520px;">
+      <form id="addProdForm" style="display:flex;gap:10px;margin-bottom:18px;">
+        <input name="p" placeholder="Yeni məhsul adı (məs. Uşaq mebeli)" style="flex:1;padding:13px 16px;border-radius:12px;border:1.5px solid var(--line-soft);">
+        <button class="btn btn-dark btn-sm">Əlavə et</button>
+      </form>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${DB.products.map((p,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;">
+          <span>${esc(p)}</span><button class="link-btn rmProd" data-i="${i}" style="color:#a13a3a;">Sil</button>
+        </div>`).join('')}
+      </div>
+    </div>
+  `));
+  bindAdminShellEvents();
+  document.getElementById('addProdForm').onsubmit = async (e)=>{
+    e.preventDefault(); const fd = new FormData(e.target); const v = fd.get('p').trim();
+    if(!v) return;
+    const {data, error} = await sb.from('products').insert({name:v}).select().single();
+    if(error){ toast('Xəta: '+error.message,'err'); return; }
+    DB.products.push(v); DB.productRows.push(data); renderAdminProducts();
+  };
+  document.querySelectorAll('.rmProd').forEach(b=>b.onclick = async ()=>{
+    const i = +b.dataset.i;
+    const row = DB.productRows[i];
+    if(!row) return;
+    const {error} = await sb.from('products').delete().eq('id', row.id);
+    if(error){ toast('Xəta: '+error.message,'err'); return; }
+    DB.products.splice(i,1); DB.productRows.splice(i,1); renderAdminProducts();
+  });
+}
+
+/* ---------------- admin: customers ---------------- */
+let CUST_FILTER = { q:'', campaignId:'', city:'', store:'' };
+function renderAdminCustomers(){
+  const camps = DB.campaigns;
+  let rows = DB.regs.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  if(CUST_FILTER.campaignId) rows = rows.filter(r=>r.campaignId===CUST_FILTER.campaignId);
+  if(CUST_FILTER.city) rows = rows.filter(r=>r.city.toLowerCase().includes(CUST_FILTER.city.toLowerCase()));
+  if(CUST_FILTER.store) rows = rows.filter(r=>r.store.toLowerCase().includes(CUST_FILTER.store.toLowerCase()));
+  if(CUST_FILTER.q){
+    const q = CUST_FILTER.q.toLowerCase();
+    rows = rows.filter(r => (r.firstName+' '+r.lastName).toLowerCase().includes(q) || r.phone.includes(q) || r.tickets.some(t=>t.id.toLowerCase().includes(q)));
+  }
+
+  App(adminShell('customers', `
+    <div class="adm-topbar"><h2 style="margin:0;">Müştərilər</h2>
+      <div style="display:flex;gap:8px;">
+        <button id="exportCsvBtn" class="btn btn-ghost btn-sm">⭳ Excel/CSV</button>
+        <button id="exportPdfBtn" class="btn btn-dark btn-sm">⭳ PDF</button>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 22px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
+      <div class="field" style="margin:0;min-width:220px;flex:1;"><label>Axtar (ad, telefon, bilet)</label><input id="fQ" value="${esc(CUST_FILTER.q)}"></div>
+      <div class="field" style="margin:0;"><label>Kampaniya</label><select id="fCamp"><option value="">Hamısı</option>${camps.map(c=>`<option value="${c.id}" ${CUST_FILTER.campaignId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+      <div class="field" style="margin:0;"><label>Şəhər</label><input id="fCity" value="${esc(CUST_FILTER.city)}"></div>
+      <div class="field" style="margin:0;"><label>Mağaza</label><input id="fStore" value="${esc(CUST_FILTER.store)}"></div>
+    </div>
+    <div class="card" style="padding:10px 8px;overflow-x:auto;">
+      ${rows.length ? `<table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Şəhər</th><th>Mağaza</th><th>Alış tarixi</th><th>Məbləğ</th><th>Bilet</th><th>Qeydiyyat</th><th>Kampaniya</th></tr></thead><tbody>
+        ${rows.map(r=>{
+          const camp = findCampaign(r.campaignId);
+          return `<tr>
+            <td><b>${esc(r.firstName)} ${esc(r.lastName)}</b></td>
+            <td class="mono">${esc(r.phone)}</td>
+            <td>${esc(r.city)}</td>
+            <td>${esc(r.store)}</td>
+            <td>${esc(r.purchaseDate)}</td>
+            <td>${fmtMoney(r.totalAmount)}</td>
+            <td>${r.tickets.length}</td>
+            <td>${new Date(r.createdAt).toLocaleDateString('az-AZ')}</td>
+            <td>${esc(camp?camp.name:'—')}</td>
+          </tr>`;
+        }).join('')}
+      </tbody></table>` : `<div class="empty">Uyğun qeydiyyat tapılmadı.</div>`}
+    </div>
+  `));
+  bindAdminShellEvents();
+  document.getElementById('fQ').oninput = e=>{ CUST_FILTER.q = e.target.value; renderAdminCustomers(); };
+  document.getElementById('fCamp').onchange = e=>{ CUST_FILTER.campaignId = e.target.value; renderAdminCustomers(); };
+  document.getElementById('fCity').oninput = e=>{ CUST_FILTER.city = e.target.value; renderAdminCustomers(); };
+  document.getElementById('fStore').oninput = e=>{ CUST_FILTER.store = e.target.value; renderAdminCustomers(); };
+  document.getElementById('exportCsvBtn').onclick = ()=>exportCustomersCsv(rows);
+  document.getElementById('exportPdfBtn').onclick = ()=>exportCustomersPrint(rows);
+}
+
+function exportCustomersCsv(rows){
+  const head = ['Ad','Soyad','Telefon','Şəhər','Mağaza','Alış tarixi','Məbləğ','Bilet sayı','Bilet nömrələri','Kampaniya','Qeydiyyat tarixi'];
+  const lines = [head.join(';')];
+  rows.forEach(r=>{
+    const camp = findCampaign(r.campaignId);
+    lines.push([r.firstName,r.lastName,r.phone,r.city,r.store,r.purchaseDate,r.totalAmount,r.tickets.length,r.tickets.map(t=>t.id).join(' '),camp?camp.name:'',new Date(r.createdAt).toLocaleDateString('az-AZ')]
+      .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';'));
+  });
+  const blob = new Blob(["\uFEFF"+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sonno-mushteriler.csv'; a.click();
+  toast('CSV yükləndi','ok');
+}
+function exportCustomersPrint(rows){
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>SONNO — Müştəri Siyahısı</title><style>
+    body{font-family:Arial,sans-serif;padding:30px;color:#111;} h1{font-family:Georgia,serif;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;} th{background:#111820;color:#fff;}
+  </style></head><body>
+    <h1>SONNO — Müştəri və Bilet Siyahısı</h1>
+    <div>Tarix: ${new Date().toLocaleDateString('az-AZ')} · Ümumi qeydiyyat: ${rows.length}</div>
+    <table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Şəhər</th><th>Mağaza</th><th>Məbləğ</th><th>Bilet sayı</th><th>Bilet nömrələri</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${r.firstName} ${r.lastName}</td><td>${r.phone}</td><td>${r.city}</td><td>${r.store}</td><td>${fmtMoney(r.totalAmount)}</td><td>${r.tickets.length}</td><td>${r.tickets.map(t=>t.id).join(', ')}</td></tr>`).join('')}
+    </tbody></table>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(), 350);
+}
+
+/* ---------------- admin: draw center ---------------- */
+let DRAW_STATE = {};
+function renderAdminDraw(campId){
+  const c = findCampaign(campId);
+  if(!c){ nav('#/admin/campaigns'); return; }
+  if(!DRAW_STATE.campaignId || DRAW_STATE.campaignId!==c.id) DRAW_STATE = { campaignId:c.id, rolling:false };
+  const s = campaignStats(c);
+  const prizes = c.prizes.slice().sort((a,b)=>a.order-b.order);
+  const wonPrizeIds = new Set(DB.winners.filter(w=>w.campaignId===c.id).map(w=>w.prizeId));
+
+  App(adminShell('campaigns', `
+    <a href="#/admin/campaign/${c.id}" style="font-size:12.5px;color:rgba(255,255,255,.0);"></a>
+    <div class="adm-topbar"><div><a href="#/admin/campaign/${c.id}" style="font-size:12.5px;color:rgba(17,24,32,.5);">← ${esc(c.name)}</a><h2 style="margin:6px 0 0;">Çəkiliş Mərkəzi</h2></div></div>
+
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="kpi-card"><div class="kpi-num">${s.regCount}</div><div class="kpi-label">Aktiv iştirakçı</div></div>
+      <div class="kpi-card"><div class="kpi-num">${s.activeTickets}</div><div class="kpi-label">Aktiv bilet</div></div>
+      <div class="kpi-card"><div class="kpi-num">${prizes.length}</div><div class="kpi-label">Hədiyyə növü</div></div>
+    </div>
+
+    <div class="draw-stage" id="drawStage">
+      <div class="eyebrow" style="justify-content:center;color:var(--orange);">🎲 Çəkiliş sahəsi</div>
+      <div id="drawPrizeName" style="font-size:20px;font-weight:700;margin-top:8px;">Hədiyyə seçin</div>
+      <div class="draw-roll" id="drawRoll">— — — — —</div>
+      <div id="drawWinnerCard"></div>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <select id="prizeSelect" style="padding:13px 16px;border-radius:100px;border:none;font-weight:700;">
+          ${prizes.map(p=>{
+            const won = DB.winners.filter(w=>w.prizeId===p.id).length;
+            return `<option value="${p.id}" ${won>=p.winnerCount?'disabled':''}>${esc(p.name)} (${won}/${p.winnerCount} seçilib)</option>`;
+          }).join('') || '<option disabled>Hədiyyə yoxdur</option>'}
+        </select>
+        <button id="startDrawBtn" class="btn btn-primary" ${(!prizes.length || s.activeTickets===0)?'disabled':''}>Çəkilişi başlat</button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:22px;margin-top:18px;">
+      <h3 style="margin:0 0 14px;font-size:15px;">Qaliblər (bu kampaniya)</h3>
+      ${winnersAdminTable(c.id)}
+    </div>
+  `));
+  bindAdminShellEvents();
+
+  document.getElementById('startDrawBtn').onclick = ()=>{
+    if(DRAW_STATE.rolling) return;
+    const prizeId = document.getElementById('prizeSelect').value;
+    const prize = prizes.find(p=>p.id===prizeId);
+    if(!prize) return;
+    if(!confirm(`"${prize.name}" hədiyyəsi üçün çəkilişi başlatmaq istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.`)) return;
+    runDraw(c, prize);
+  };
+}
+
+function winnersAdminTable(campId){
+  const rows = DB.winners.filter(w=>w.campaignId===campId).sort((a,b)=>b.drawTime-a.drawTime);
+  if(!rows.length) return `<div class="empty">Hələ çəkiliş keçirilməyib.</div>`;
+  return `<table><thead><tr><th>Hədiyyə</th><th>Ad Soyad</th><th>Telefon</th><th>Bilet</th><th>Məbləğ</th><th>Tarix</th></tr></thead><tbody>
+    ${rows.map(w=>`<tr><td><b>${esc(w.prizeName)}</b></td><td>${esc(w.firstName)} ${esc(w.lastName)}</td><td class="mono">${esc(w.phone)}</td><td class="mono">${esc(w.ticketId)}</td><td>${fmtMoney(w.totalAmount)}</td><td>${new Date(w.drawTime).toLocaleString('az-AZ')}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function runDraw(c, prize){
+  // Gather active tickets pool (not already-won tickets) across this campaign's registrations
+  const pool = [];
+  DB.regs.filter(r=>r.campaignId===c.id).forEach(r=>{
+    r.tickets.forEach(t=>{ if(t.status==='Aktiv') pool.push({ticketId:t.id, dbId:t._dbId, reg:r}); });
+  });
+  if(pool.length===0){ toast('Aktiv bilet yoxdur','err'); return; }
+
+  // Predetermine the true winner FIRST (backend logic), animation only visualizes it
+  const winnerEntry = pool[Math.floor(Math.random()*pool.length)];
+
+  DRAW_STATE.rolling = true;
+  const rollEl = document.getElementById('drawRoll');
+  const nameEl = document.getElementById('drawPrizeName');
+  nameEl.textContent = `Çəkiliş başlayır — ${prize.name}`;
+  let ticks = 0;
+  const maxTicks = 26;
+  const iv = setInterval(()=>{
+    ticks++;
+    const rnd = pool[Math.floor(Math.random()*pool.length)];
+    rollEl.textContent = rnd.ticketId;
+    if(ticks>=maxTicks){
+      clearInterval(iv);
+      rollEl.textContent = winnerEntry.ticketId;
+      finalizeDraw(c, prize, winnerEntry);
+    }
+  }, 90);
+}
+
+async function finalizeDraw(c, prize, winnerEntry){
+  const reg = winnerEntry.reg;
+  const ticket = reg.tickets.find(t=>t.id===winnerEntry.ticketId);
+
+  const {error: tErr} = await sb.from('tickets').update({status:'Qalib'}).eq('id', winnerEntry.dbId);
+  if(tErr){ toast('Xəta: '+tErr.message, 'err'); DRAW_STATE.rolling=false; return; }
+
+  const winnerId = crypto.randomUUID();
+  const {error: wErr} = await sb.from('winners').insert({
+    id: winnerId, campaign_id:c.id, prize_id:prize.id, prize_name:prize.name, prize_order:prize.order,
+    ticket_id: winnerEntry.dbId, ticket_code: ticket.id, registration_id: reg.id
+  });
+  if(wErr){ toast('Xəta: '+wErr.message, 'err'); DRAW_STATE.rolling=false; return; }
+
+  ticket.status = 'Qalib';
+  DB.winners.unshift({
+    id: winnerId, campaignId:c.id, prizeId:prize.id, prizeName:prize.name, prizeOrder:prize.order,
+    ticketId: ticket.id, registrationId: reg.id,
+    firstName: reg.firstName, lastName: reg.lastName, phone: reg.phone, city: reg.city, store: reg.store,
+    purchaseDate: reg.purchaseDate, totalAmount: reg.totalAmount,
+    drawTime: Date.now()
+  });
+
+  const card = document.getElementById('drawWinnerCard');
+  if(card){
+    card.innerHTML = `
+      <div class="card" style="background:#fff;color:var(--dark);padding:20px 24px;margin-top:20px;text-align:left;border-radius:16px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--green);">Qalib müəyyən olundu</div>
+        <div class="disp" style="font-size:22px;margin-top:4px;">${esc(reg.firstName)} ${esc(reg.lastName)}</div>
+        <div style="font-size:14px;color:rgba(17,24,32,.6);margin-top:4px;">${esc(reg.phone)} · ${esc(reg.city)} · ${esc(reg.store)}</div>
+        <div style="font-size:14px;margin-top:6px;">Alış: <b>${fmtMoney(reg.totalAmount)}</b> · Bilet: <b class="mono">${esc(ticket.id)}</b></div>
+      </div>`;
+  }
+  DRAW_STATE.rolling = false;
+  toast(`"${prize.name}" qalibi: ${reg.firstName} ${reg.lastName}`, 'ok');
+  setTimeout(()=>renderAdminDraw(c.id), 1400);
+}
+
+/* ---------------- admin: archive ---------------- */
+function renderAdminArchive(){
+  const done = DB.campaigns.filter(c=>c.status==='Tamamlanıb');
+  App(adminShell('archive', `
+    <div class="adm-topbar"><h2 style="margin:0;">Arxiv</h2></div>
+    <div class="card" style="padding:22px;">
+      ${done.length ? campaignsTable(done) : `<div class="empty">Tamamlanmış kampaniya yoxdur. Kampaniyanı "Tamamlanıb" statusuna keçirdikdən sonra bura köçəcək.</div>`}
+    </div>
+  `));
+  bindAdminShellEvents();
+}
+
+/* ---------------- inject countdown ticker on every render ---------------- */
+const _origRender = render;
+render = function(){ _origRender(); startCountdownTicker(); };
+
+boot();
+</script>
