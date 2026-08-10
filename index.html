@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SONNO — Müştəri Hədiyyə Çəkilişi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <!--
@@ -8,6 +14,7 @@
 -->
 
 <style>
+
   :root{
     --dark:#111820;
     --dark-2:#182129;
@@ -146,7 +153,37 @@
   .empty{text-align:center;padding:60px 20px;color:rgba(17,24,32,.45);}
   .link-btn{background:none;border:none;color:var(--green);font-weight:700;font-size:13.5px;cursor:pointer;}
   .footer-note{font-size:12px;color:rgba(17,24,32,.4);text-align:center;padding:30px 20px 50px;line-height:1.6;}
+
+  /* ---------- mobil uyğunlaşma ---------- */
+  html{-webkit-text-size-adjust:100%;}
+  .card:has(table){overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+  @media (max-width: 860px){
+    .adm-shell{flex-direction:column;}
+    .adm-side{width:100%;flex-direction:row;align-items:center;padding:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;flex-wrap:nowrap;}
+    .adm-side:after{display:none;}
+    .adm-side .brandmark{margin-bottom:0;padding:0 8px;flex-shrink:0;}
+    .adm-side .adm-nav-item{flex-shrink:0;white-space:nowrap;margin-bottom:0;}
+    .adm-side > div[style*="flex:1"]{display:none;}
+    .adm-side > div[style*="word-break"]{display:none;}
+    .adm-main{padding:18px 16px;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .adm-topbar{flex-wrap:wrap;gap:12px;}
+  }
+  @media (max-width: 480px){
+    .container{padding:0 16px;}
+    .hero{padding:38px 22px 30px;}
+    .card{padding:20px !important;}
+    .cd-box{min-width:64px;padding:11px 4px;}
+    .cd-num{font-size:21px;}
+    .modal{padding:22px;}
+    .btn{padding:14px 20px;}
+    table{font-size:13px;}
+    th,td{padding:10px 8px;}
+  }
 </style>
+</head>
+<body>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <div class="toast-wrap" id="toastWrap"></div>
@@ -1208,3 +1245,5 @@ render = function(){ _origRender(); startCountdownTicker(); };
 
 boot();
 </script>
+</body>
+</html>
