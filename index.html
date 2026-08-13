@@ -68,10 +68,11 @@
   .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:.02em;}
   .field{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
   .field label{font-size:12.5px;font-weight:700;color:var(--dark);opacity:.65;letter-spacing:.02em;text-transform:uppercase;}
-  .field input, .field select, .field textarea{padding:15px 16px;border-radius:12px;border:1.5px solid var(--line-soft);background:var(--white);font-size:15.5px;color:var(--dark);outline:none;transition:border-color .15s;}
+  .field input, .field select, .field textarea{width:100%;max-width:100%;box-sizing:border-box;padding:15px 16px;border-radius:12px;border:1.5px solid var(--line-soft);background:var(--white);font-size:15.5px;color:var(--dark);outline:none;transition:border-color .15s;}
+  .field textarea{overflow-wrap:break-word;word-break:break-word;resize:vertical;}
   .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--orange);}
   .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--line-soft);}
-  .container{max-width:1180px;margin:0 auto;padding:0 24px;}
+  .container{max-width:1180px;margin:0 auto;padding:0 24px;overflow-x:hidden;}
   .toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;}
   .toast{background:var(--dark);color:#fff;padding:13px 22px;border-radius:100px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px -8px rgba(0,0,0,.5);animation:toastIn .25s ease;}
   .toast.err{background:#8a2f2f;}
@@ -173,6 +174,17 @@
   html{-webkit-text-size-adjust:100%;}
   body{overflow-x:hidden;}
   .card:has(table){overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+  /* Flex/Grid uşaqları defolt olaraq "min-width:auto" daşıyır — bu, içindəki geniş
+     məzmunun (cədvəl, uzun URL və s.) bütün səhifəni ekrandan kənara itələməsinə səbəb olur.
+     min-width:0 həmişə uşaqların öz konteynerinə sığmaq üçün sıxıla bilməsini təmin edir. */
+  .camp-edit-grid > *{min-width:0;}
+  .grid2 > *{min-width:0;}
+  .prod-row > *{min-width:0;}
+  .adm-topbar > *{min-width:0;}
+  .card{min-width:0;}
+  table{table-layout:auto;max-width:100%;}
+  .adm-main{max-width:100%;overflow-x:hidden;}
 
   /* iPhone çentiyi / home-indicator üçün təhlükəsiz zona payı */
   .pubnav{padding-top:max(22px, env(safe-area-inset-top));}
