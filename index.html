@@ -101,6 +101,21 @@
   .cd-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:26px;color:var(--white);font-variant-numeric:tabular-nums;}
   .cd-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
 
+  /* ---------- hədiyyə posteri (bol hədiyyə / lotoreya hissi) ---------- */
+  .prize-poster{position:relative;overflow:hidden;border-radius:22px;margin-top:16px;padding:26px 24px 22px;background:linear-gradient(120deg, var(--orange) 0%, #e8631f 55%, var(--green-dk) 130%);isolation:isolate;}
+  .prize-poster .patt{position:absolute;inset:0;background-image:var(--sonno-pattern);background-size:70px 70px;opacity:.16;pointer-events:none;}
+  .prize-poster .burst{position:absolute;right:-40px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.28), transparent 70%);pointer-events:none;}
+  .prize-poster-head{position:relative;z-index:1;color:#fff;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .prize-cards{position:relative;z-index:1;display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .prize-cards::-webkit-scrollbar{display:none;}
+  .prize-card{flex:0 0 auto;min-width:148px;max-width:168px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.35);border-radius:16px;padding:16px 14px;text-align:center;}
+  .prize-emoji{font-size:30px;margin-bottom:8px;}
+  .prize-name{color:#fff;font-weight:700;font-size:14px;line-height:1.25;font-family:'Lora',serif;}
+  .prize-value{color:#fff;opacity:.85;font-size:12px;margin-top:5px;font-weight:600;}
+  .prize-count{display:inline-block;margin-top:8px;background:rgba(255,255,255,.22);color:#fff;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:100px;}
+
+  .terms-link{background:none;border:none;color:var(--green);font-weight:700;font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;}
+
   /* ticket card - signature element */
   .ticket{position:relative;background:linear-gradient(135deg, var(--green-dk), var(--green) 130%);color:#fff;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;isolation:isolate;}
   .ticket .patt{position:absolute;inset:0;background-image:var(--sonno-pattern);background-size:56px 56px;opacity:.14;pointer-events:none;}
@@ -205,6 +220,18 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const DEMO_ORIGIN = window.location.origin; // deploy olunan real domen avtomatik istifadə olunur
 const TICKET_PRICE_STEP = 200;
 const DEFAULT_PRODUCTS = ['Stul','Divan','Kreslo','Masa','Şkaf','Mətbəx mebeli','Yataq dəsti','Aksesuar'];
+
+const TERMS_CLAUSES = [
+  { title:'1. Ümumi müddəalar', body:'Bu kampaniyada iştirak etməklə, iştirakçı aşağıdakı şərtləri tam qəbul etmiş sayılır. SONNO bu şərtlərə əsasən kampaniyanın gedişini, hədiyyələrin bölgüsünü və qaliblərin müəyyən edilməsini həyata keçirir.' },
+  { title:'2. Məlumatların dəqiqliyi', body:'Qeydiyyat zamanı daxil etdiyiniz bütün məlumatlar (ad, soyad, əlaqə nömrəsi, mağaza, alış tarixi və məbləği) tam və dəqiq olmalıdır. Diqqətli olun: məlumatlarda səhvə yol verilərsə, sistemdə yanlış qeydiyyat yaranarsa və ya göstərilən məlumatlar yoxlama zamanı təsdiqlənməzsə, hədiyyənin təhvil verilməsi mümkün olmayacaqdır.' },
+  { title:'3. Mağaza və qiymət məlumatının düzgünlüyü', body:'Məhsulu aldığınız mağazanın adını və məhsulun qiymətini dəqiq qeyd etməlisiniz. Bu məlumatlarda uyğunsuzluq aşkar edilərsə, hədiyyə təhvil verilməyəcəkdir.' },
+  { title:'4. Alışların yoxlanılması', body:'Çəkilişdə qalib gələn iştirakçının bütün qeyd etdiyi alışlar SONNO tərəfindən yoxlanılır (mağaza qeydləri, satış sənədləri əsasında). Yoxlama uğurla təsdiqləndikdən sonra qalibə hədiyyəsi təqdim olunur.' },
+  { title:'5. Hədiyyənin təhvil alınması müddəti', body:'Qalib elan olunan iştirakçı hədiyyəsini bildiriş tarixindən etibarən 30 (otuz) gün ərzində SONNO-nun göstərdiyi mağazadan təhvil almalıdır. Bu müddət ərzində hədiyyə təhvil alınmazsa, qalibin hədiyyə hüququ ləğv edilmiş sayılır və hədiyyə yenidən kampaniyanın sərəncamına qaytarılır.' },
+  { title:'6. Şəxsi məlumatların qorunması', body:'İştirakçının qeydiyyat zamanı verdiyi şəxsi məlumatlar yalnız bu kampaniyanın həyata keçirilməsi (iştirak, qalibin müəyyən edilməsi, əlaqə saxlanılması) məqsədilə istifadə olunur və üçüncü tərəflərlə paylaşılmır.' },
+  { title:'7. Dəyişikliklər hüququ', body:'SONNO zəruri hallarda kampaniyanın şərtlərinə, müddətinə və ya hədiyyə siyahısına dəyişiklik etmək hüququnu özündə saxlayır. Dəyişikliklər bu səhifədə dərc olunmaqla qüvvəyə minir.' },
+  { title:'8. Əlaqə', body:'Kampaniya ilə bağlı suallarınız üçün SONNO-nun rəsmi əlaqə kanalları (mağaza və ya info@sonno.az) ilə əlaqə saxlaya bilərsiniz.' },
+];
+
 
 let DB = { campaigns:[], regs:[], winners:[], products:[], productRows:[] };
 let ADMIN_SESSION = null; // {email}
@@ -371,6 +398,7 @@ function render(){
   }
   if(parts[0]==='campaign' && parts[1]){
     if(parts[2]==='qaliblər' || parts[2]==='winners') return renderPublicWinners(parts[1]);
+    if(parts[2]==='shertler' || parts[2]==='terms') return renderTermsPage(parts[1]);
     return renderCustomerFlow(parts[1]);
   }
   return renderHome();
@@ -479,10 +507,13 @@ function renderCustomerFlow(slug){
         </div>
       </div>
 
-      <label style="display:flex;gap:10px;align-items:flex-start;margin:20px 0 6px;font-size:13px;color:rgba(17,24,32,.7);line-height:1.55;">
+      <label style="display:flex;gap:10px;align-items:flex-start;margin:20px 0 4px;font-size:13px;color:rgba(17,24,32,.7);line-height:1.55;">
         <input type="checkbox" required name="consent" style="margin-top:3px;">
         Şəxsi məlumatlarımın kampaniyada iştirak, qalibin müəyyən edilməsi və mənimlə əlaqə saxlanılması məqsədilə işlənməsinə razıyam.
       </label>
+      <div style="margin:0 0 16px 26px;">
+        <a href="#/campaign/${c.slug}/shertler" target="_blank" rel="noopener" class="terms-link">Şərtlərlə tanış ol →</a>
+      </div>
 
       <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;padding:17px;">Qeydiyyatı tamamla</button>
     </form>
@@ -497,7 +528,6 @@ function renderCustomerFlow(slug){
 }
 
 function publicShell(c, inner){
-  const stats = campaignStats(c);
   return `
   <div class="container" style="padding-top:26px;padding-bottom:60px;max-width:760px;">
     <div class="pubnav">
@@ -505,8 +535,30 @@ function publicShell(c, inner){
       <span class="pill" style="background:#e3f5ef;color:var(--green-dk);">${esc(c.name)}</span>
     </div>
     ${countdownHero(c)}
+    ${prizesBanner(c)}
     <div class="card" style="padding:30px;margin-top:22px;">
       ${inner}
+    </div>
+  </div>`;
+}
+
+function prizesBanner(c){
+  const prizes = (c.prizes||[]).slice().sort((a,b)=>(a.order||0)-(b.order||0));
+  if(!prizes.length) return '';
+  const emojis = ['🎁','🏆','🎉','✨','🥳','🎊'];
+  return `
+  <div class="prize-poster">
+    <div class="patt"></div>
+    <div class="burst"></div>
+    <div class="prize-poster-head">🎉 Bu kampaniyada qazana biləcəyiniz hədiyyələr</div>
+    <div class="prize-cards">
+      ${prizes.map((p,i)=>`
+        <div class="prize-card">
+          <div class="prize-emoji">${emojis[i%emojis.length]}</div>
+          <div class="prize-name">${esc(p.name)}</div>
+          ${p.value?`<div class="prize-value">${esc(p.value)}</div>`:''}
+          ${p.winnerCount>1?`<div class="prize-count">${p.winnerCount} qalib</div>`:''}
+        </div>`).join('')}
     </div>
   </div>`;
 }
@@ -683,6 +735,27 @@ async function renderPublicWinners(slug){
         </div>`).join('') : `<div class="empty">Çəkiliş hələ keçirilməyib. Nəticələr bura əlavə olunacaq.</div>`}
     </div>
     <div class="footer-note">Məxfilik səbəbindən qaliblərin tam əlaqə məlumatı yalnız SONNO admin komandasına görünür.</div>
+  </div>`);
+}
+
+function renderTermsPage(slug){
+  const c = findCampaign(slug);
+  App(`
+  <div class="container" style="padding-top:26px;padding-bottom:60px;max-width:700px;">
+    <div class="pubnav"><a href="#/" class="brandmark"><div class="s">${logoMark()}</div>SONNO</a></div>
+    <div class="card" style="padding:32px;margin-top:10px;">
+      <div class="eyebrow">📋 İştirak şərtləri</div>
+      <h1 style="margin:0 0 6px;font-size:26px;">Kampaniya şərtləri və qaydaları</h1>
+      <p style="color:rgba(17,24,32,.55);margin:0 0 26px;font-size:14px;">${c ? esc(c.name) : 'SONNO Müştəri Hədiyyə Çəkilişi'}</p>
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        ${TERMS_CLAUSES.map(t=>`
+          <div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:5px;">${esc(t.title)}</div>
+            <div style="font-size:14px;line-height:1.65;color:rgba(17,24,32,.75);">${esc(t.body)}</div>
+          </div>`).join('')}
+      </div>
+      ${c ? `<a href="#/campaign/${c.slug}" class="btn btn-dark" style="margin-top:28px;">← Qeydiyyata qayıt</a>` : `<a href="#/" class="btn btn-dark" style="margin-top:28px;">Ana səhifə</a>`}
+    </div>
   </div>`);
 }
 
