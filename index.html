@@ -169,10 +169,31 @@
   .link-btn{background:none;border:none;color:var(--green);font-weight:700;font-size:13.5px;cursor:pointer;}
   .footer-note{font-size:12px;color:rgba(17,24,32,.4);text-align:center;padding:30px 20px 50px;line-height:1.6;}
 
-  /* ---------- mobil uyğunlaşma ---------- */
+  /* ---------- mobil uyğunlaşma (2027 standartlarına uyğun) ---------- */
   html{-webkit-text-size-adjust:100%;}
+  body{overflow-x:hidden;}
   .card:has(table){overflow-x:auto;-webkit-overflow-scrolling:touch;}
 
+  /* iPhone çentiyi / home-indicator üçün təhlükəsiz zona payı */
+  .pubnav{padding-top:max(22px, env(safe-area-inset-top));}
+  .adm-side{padding-left:max(16px, env(safe-area-inset-left));padding-right:max(16px, env(safe-area-inset-right));}
+  body{padding-bottom:env(safe-area-inset-bottom);}
+
+  /* toxunma zonaları ≥44px (Apple/Google standartı) */
+  .icon-btn{width:42px;height:42px;}
+  .btn{min-height:44px;}
+  .btn-sm{min-height:38px;}
+
+  .feature-grid-3{margin-top:34px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .camp-edit-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start;}
+  .kpi-grid.kpi-grid-3{grid-template-columns:repeat(3,1fr);}
+
+  @media (max-width: 900px){
+    .camp-edit-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width: 700px){
+    .feature-grid-3{grid-template-columns:1fr;gap:12px;margin-top:24px;}
+  }
   @media (max-width: 860px){
     .adm-shell{flex-direction:column;}
     .adm-side{width:100%;flex-direction:row;align-items:center;padding:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;flex-wrap:nowrap;}
@@ -182,18 +203,27 @@
     .adm-side > div[style*="flex:1"]{display:none;}
     .adm-side > div[style*="word-break"]{display:none;}
     .adm-main{padding:18px 16px;}
-    .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .kpi-grid, .kpi-grid.kpi-grid-3{grid-template-columns:repeat(2,1fr);gap:10px;}
     .adm-topbar{flex-wrap:wrap;gap:12px;}
+    .adm-topbar > div:last-child{width:100%;}
+    .draw-stage{padding:32px 18px;}
+  }
+  @media (max-width: 600px){
+    .prize-card{min-width:130px;max-width:140px;}
   }
   @media (max-width: 480px){
     .container{padding:0 16px;}
-    .hero{padding:38px 22px 30px;}
+    .hero{padding:30px 20px 26px;}
     .card{padding:20px !important;}
-    .cd-box{min-width:64px;padding:11px 4px;}
-    .cd-num{font-size:21px;}
-    .modal{padding:22px;}
-    .btn{padding:14px 20px;}
-    table{font-size:13px;}
+    .cd-box{min-width:60px;padding:10px 3px;}
+    .cd-num{font-size:19px;}
+    .modal{padding:20px;}
+    .btn{padding:13px 18px;font-size:14px;}
+    table{font-size:12.5px;}
+    .prod-row{grid-template-columns:1fr;}
+    .kpi-grid, .kpi-grid.kpi-grid-3{grid-template-columns:repeat(2,1fr);}
+    .adm-nav-item{font-size:13px;padding:10px 12px;}
+
     th,td{padding:10px 8px;}
   }
 </style>
@@ -427,7 +457,7 @@ function renderHome(){
       </div>
     </div>
 
-    <div style="margin-top:34px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <div class="feature-grid-3">
       ${['200 ₼ alış = 1 bilet','Avtomatik, unikal biletlər','Şəffaf, audit edilə bilən çəkiliş'].map((t,i)=>`
         <div class="card" style="padding:22px;">
           <div style="width:34px;height:34px;border-radius:9px;background:${i===1?'#fde9d6':'#e3f5ef'};color:${i===1?'var(--orange-dim)':'var(--green)'};display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:12px;">${i+1}</div>
@@ -936,7 +966,7 @@ function renderAdminCampaignEdit(id){
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start;">
+    <div class="camp-edit-grid">
       <div>
         <div class="card" style="padding:22px;margin-bottom:16px;">
           <h3 style="margin:0 0 14px;font-size:15px;">Əsas məlumatlar</h3>
@@ -1188,7 +1218,7 @@ function renderAdminDraw(campId){
     <a href="#/admin/campaign/${c.id}" style="font-size:12.5px;color:rgba(255,255,255,.0);"></a>
     <div class="adm-topbar"><div><a href="#/admin/campaign/${c.id}" style="font-size:12.5px;color:rgba(17,24,32,.5);">← ${esc(c.name)}</a><h2 style="margin:6px 0 0;">Çəkiliş Mərkəzi</h2></div></div>
 
-    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="kpi-grid kpi-grid-3">
       <div class="kpi-card"><div class="kpi-num">${s.regCount}</div><div class="kpi-label">Aktiv iştirakçı</div></div>
       <div class="kpi-card"><div class="kpi-num">${s.activeTickets}</div><div class="kpi-label">Aktiv bilet</div></div>
       <div class="kpi-card"><div class="kpi-num">${prizes.length}</div><div class="kpi-label">Hədiyyə növü</div></div>
