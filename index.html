@@ -194,19 +194,43 @@
   @media (max-width: 700px){
     .feature-grid-3{grid-template-columns:1fr;gap:12px;margin-top:24px;}
   }
+  /* ---------- admin: mobil naviqasiya (hamburger menyu) ---------- */
+  .adm-mobile-topbar{display:none;}
+  .adm-mobile-overlay{display:none;}
+  .adm-mobile-menu{display:none;}
+
   @media (max-width: 860px){
     .adm-shell{flex-direction:column;}
-    .adm-side{width:100%;flex-direction:row;align-items:center;padding:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:4px;flex-wrap:nowrap;}
-    .adm-side:after{display:none;}
-    .adm-side .brandmark{margin-bottom:0;padding:0 8px;flex-shrink:0;}
-    .adm-side .adm-nav-item{flex-shrink:0;white-space:nowrap;margin-bottom:0;}
-    .adm-side > div[style*="flex:1"]{display:none;}
-    .adm-side > div[style*="word-break"]{display:none;}
+    .adm-side{display:none;}
     .adm-main{padding:18px 16px;}
     .kpi-grid, .kpi-grid.kpi-grid-3{grid-template-columns:repeat(2,1fr);gap:10px;}
     .adm-topbar{flex-wrap:wrap;gap:12px;}
     .adm-topbar > div:last-child{width:100%;}
     .draw-stage{padding:32px 18px;}
+
+    .adm-mobile-topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      background:var(--dark);color:#fff;padding:14px 16px;
+      padding-top:max(14px, env(safe-area-inset-top));
+      position:sticky;top:0;z-index:200;
+    }
+    .adm-mobile-topbar .brandmark{font-size:16px;}
+    .adm-mobile-topbar .brandmark .s{width:28px;height:28px;padding:5px;}
+    .adm-mobile-title{flex:1;text-align:center;font-weight:700;font-size:14px;color:rgba(255,255,255,.85);}
+    .adm-mobile-burger{background:rgba(255,255,255,.08);border:none;color:#fff;width:38px;height:38px;border-radius:10px;font-size:17px;flex-shrink:0;}
+
+    .adm-mobile-overlay.open{
+      display:block;position:fixed;inset:0;background:rgba(17,24,32,.5);z-index:210;
+    }
+    .adm-mobile-menu{
+      position:fixed;top:0;right:0;bottom:0;width:78%;max-width:300px;
+      background:var(--dark);z-index:220;padding:20px 14px;
+      padding-top:max(20px, env(safe-area-inset-top));
+      transform:translateX(100%);transition:transform .25s ease;
+      display:flex;flex-direction:column;overflow-y:auto;
+    }
+    .adm-mobile-menu.open{display:flex;transform:translateX(0);}
+    .adm-mobile-menu .adm-nav-item{margin-bottom:4px;}
   }
   @media (max-width: 600px){
     .prize-card{min-width:130px;max-width:140px;}
@@ -824,6 +848,7 @@ function adminShell(active, inner){
     ['','İdarə paneli','📊'],['campaigns','Kampaniyalar','🎯'],['customers','Müştərilər','👥'],
     ['products','Məhsullar','🛋'],['archive','Arxiv','🗂'],
   ];
+  const activeLabel = (items.find(([r])=>r===active) || items[0])[1];
   return `
   <div class="adm-shell">
     <div class="adm-side">
@@ -833,12 +858,43 @@ function adminShell(active, inner){
       <div style="padding:12px 10px;font-size:12px;color:rgba(255,255,255,.4);word-break:break-all;">${esc(ADMIN_SESSION?.email||'')}</div>
       <button id="logoutBtn" class="adm-nav-item" style="background:rgba(255,255,255,.05);">↩ Çıxış</button>
     </div>
+
+    <div class="adm-mobile-topbar">
+      <div class="brandmark" style="color:#fff;"><div class="s">${logoMark()}</div>SONNO</div>
+      <div class="adm-mobile-title">${activeLabel}</div>
+      <button id="mobileMenuBtn" class="adm-mobile-burger" aria-label="Menyu">☰</button>
+    </div>
+    <div id="mobileNavOverlay" class="adm-mobile-overlay"></div>
+    <div id="mobileNavMenu" class="adm-mobile-menu">
+      ${items.map(([r,label,icon])=>`<a class="adm-nav-item ${active===r?'active':''}" href="#/admin${r?'/'+r:''}">${icon} ${label}</a>`).join('')}
+      <div style="height:1px;background:rgba(255,255,255,.1);margin:8px 0;"></div>
+      <div style="padding:10px;font-size:12px;color:rgba(255,255,255,.4);word-break:break-all;">${esc(ADMIN_SESSION?.email||'')}</div>
+      <button id="logoutBtnMobile" class="adm-nav-item" style="background:rgba(255,255,255,.05);">↩ Çıxış</button>
+    </div>
+
     <div class="adm-main">${inner}</div>
   </div>`;
 }
 function bindAdminShellEvents(){
   const b = document.getElementById('logoutBtn');
   if(b) b.onclick = async ()=>{ await adminSignOut(); nav('#/'); };
+  const b2 = document.getElementById('logoutBtnMobile');
+  if(b2) b2.onclick = async ()=>{ await adminSignOut(); nav('#/'); };
+
+  const menuBtn = document.getElementById('mobileMenuBtn');
+  const menu = document.getElementById('mobileNavMenu');
+  const overlay = document.getElementById('mobileNavOverlay');
+  if(menuBtn && menu && overlay){
+    const closeMenu = ()=>{ menu.classList.remove('open'); overlay.classList.remove('open'); menuBtn.textContent='☰'; };
+    const toggleMenu = ()=>{
+      const isOpen = menu.classList.toggle('open');
+      overlay.classList.toggle('open', isOpen);
+      menuBtn.textContent = isOpen ? '✕' : '☰';
+    };
+    menuBtn.onclick = toggleMenu;
+    overlay.onclick = closeMenu;
+    menu.querySelectorAll('a.adm-nav-item').forEach(a => a.addEventListener('click', closeMenu));
+  }
 }
 
 /* ---------------- admin dashboard ---------------- */
@@ -1003,7 +1059,7 @@ function renderAdminCampaignEdit(id){
           <img id="qrImgEl" src="${qrImg}" alt="QR" style="width:100%;max-width:220px;border-radius:14px;border:1px solid var(--line-soft);background:#fff;" onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';"/>
           <div id="qrFallback" style="display:none;padding:20px;background:#fdece0;border-radius:12px;font-size:13px;color:#b5601a;">QR şəkli yüklənmədi (internet bağlantısı və ya xarici xidmət problemi ola bilər). Aşağıdakı linki birbaşa istifadə edə bilərsiniz.</div>
           <div class="mono" style="font-size:11.5px;color:rgba(17,24,32,.5);margin:12px 0;word-break:break-all;">${esc(url)}</div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
             <a href="${qrImg}" target="_blank" class="btn btn-ghost btn-sm btn-block">PNG aç / yüklə</a>
             <button id="copyLinkBtn" class="btn btn-dark btn-sm btn-block">Linki kopyala</button>
           </div>
