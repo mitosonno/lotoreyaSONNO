@@ -1225,8 +1225,9 @@ async function loadCodesStats(){
   const today = new Date(); today.setHours(0,0,0,0);
   const todayQ = await sb.from('product_codes').select('*', {count:'exact', head:true}).eq('status','used').gte('used_at', today.toISOString());
   const byStoreQ = await sb.from('codes_by_store').select('*').limit(60);
+  const batchesQ = await sb.from('code_batches').select('*').limit(100);
   const total = totalQ.count || 0, used = usedQ.count || 0;
-  return { total, used, unused: total-used, usedToday: todayQ.count || 0, byStore: byStoreQ.data || [] };
+  return { total, used, unused: total-used, usedToday: todayQ.count || 0, byStore: byStoreQ.data || [], batches: batchesQ.data || [] };
 }
 
 async function renderAdminCodes(){
@@ -1247,6 +1248,24 @@ async function renderAdminCodes(){
       <div class="kpi-card"><div class="kpi-num">${stats.unused}</div><div class="kpi-label">Hələ boşdur (anbarda)</div></div>
       <div class="kpi-card"><div class="kpi-num">${stats.usedToday}</div><div class="kpi-label">Bu gün satılıb</div></div>
     </div>
+
+    <div class="card" style="padding:22px;margin-bottom:16px;">
+      <h3 style="margin:0 0 14px;font-size:15px;">Yaradılmış kod dəstələri</h3>
+      ${stats.batches.length ? `<table><thead><tr><th>Kampaniya</th><th>Qeyd</th><th>Cəmi</th><th>İstifadə olunub</th><th>Qalıq</th><th>Tarix</th><th></th></tr></thead><tbody>
+        ${stats.batches.map(b=>`<tr>
+          <td><b>${esc(b.campaign_name||'—')}</b></td>
+          <td>${esc(b.batch_note||'—')}</td>
+          <td>${b.total}</td>
+          <td>${b.used}</td>
+          <td><span class="badge" style="background:${b.unused>0?'#e3f5ef':'#eee'};color:${b.unused>0?'var(--green-dk)':'#888'};">${b.unused}</span></td>
+          <td>${new Date(b.created_at).toLocaleDateString('az-AZ')}</td>
+          <td style="text-align:right;white-space:nowrap;">
+            ${b.unused>0 ? `<button class="link-btn reprintBatch" data-batch="${b.batch_id}" data-campid="${b.campaign_id}" data-campname="${esc(b.campaign_name||'')}" data-campslug="${esc(b.campaign_slug||'')}">Qalanları çap et</button>` : `<span style="color:rgba(17,24,32,.3);font-size:12.5px;">Hamısı satılıb</span>`}
+          </td>
+        </tr>`).join('')}
+      </tbody></table>` : `<div class="empty">Hələ heç bir kod dəsti yaradılmayıb.</div>`}
+    </div>
+
     <div class="card" style="padding:22px;">
       <h3 style="margin:0 0 14px;font-size:15px;">Mağazalar üzrə satış (gün-gün)</h3>
       ${stats.byStore.length ? `<table><thead><tr><th>Mağaza</th><th>Tarix</th><th>Satılan kod sayı</th></tr></thead><tbody>
@@ -1256,6 +1275,18 @@ async function renderAdminCodes(){
   `));
   bindAdminShellEvents();
   document.getElementById('genCodesBtn').onclick = openGenCodesModal;
+  document.querySelectorAll('.reprintBatch').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const origText = btn.textContent;
+      btn.textContent = 'Yüklənir...'; btn.disabled = true;
+      const { data, error } = await sb.from('product_codes').select('code').eq('batch_id', btn.dataset.batch).eq('status','unused');
+      btn.disabled = false; btn.textContent = origText;
+      if(error){ toast('Xəta: '+error.message, 'err'); return; }
+      if(!data || !data.length){ toast('Qalıq kod tapılmadı', 'err'); return; }
+      const campaign = { id: btn.dataset.campid, slug: btn.dataset.campslug, name: btn.dataset.campname };
+      printCodeStickers(campaign, data.map(r=>r.code));
+    };
+  });
 }
 
 function openGenCodesModal(){
@@ -1300,12 +1331,13 @@ function openGenCodesModal(){
     const allCodes = new Set();
     while(allCodes.size < qty) allCodes.add(genCode());
     const codesArr = Array.from(allCodes);
+    const batchId = crypto.randomUUID();
 
     const batchSize = 500;
     let inserted = 0;
     const createdCodes = [];
     for(let i=0;i<codesArr.length;i+=batchSize){
-      const batch = codesArr.slice(i,i+batchSize).map(code=>({ code, batch_note: note||null, campaign_id: campaign.id }));
+      const batch = codesArr.slice(i,i+batchSize).map(code=>({ code, batch_note: note||null, campaign_id: campaign.id, batch_id: batchId }));
       const {data, error} = await sb.from('product_codes').insert(batch).select('code');
       if(error){ toast('Xəta: '+error.message, 'err'); progress.textContent = `Xəta baş verdi — ${inserted} kod yaradılmışdı, dayandırıldı.`; return; }
       inserted += batch.length;
@@ -1381,7 +1413,26 @@ function printCodeStickers(campaign, codes){
 }
 
 
-let CUST_FILTER = { q:'', campaignId:'', city:'', store:'' };
+let CUST_FILTER = { q:'', campaignId:'', city:'', store:'', grouped:false };
+function groupRegsByPhone(rows){
+  const map = new Map();
+  rows.forEach(r=>{
+    const key = r.phone;
+    if(!map.has(key)) map.set(key, []);
+    map.get(key).push(r);
+  });
+  return Array.from(map.entries()).map(([phone, list])=>{
+    const sorted = list.slice().sort((a,b)=>b.createdAt-a.createdAt);
+    const latest = sorted[0];
+    const totalAmount = list.reduce((a,r)=>a+r.totalAmount,0);
+    const totalTickets = list.reduce((a,r)=>a+r.tickets.length,0);
+    const campNames = [...new Set(list.map(r=>{ const c=findCampaign(r.campaignId); return c?c.name:'—'; }))];
+    return { phone, firstName:latest.firstName, lastName:latest.lastName, city:latest.city,
+      purchaseCount:list.length, totalAmount, totalTickets, lastDate:latest.createdAt,
+      campNames, purchases: sorted };
+  }).sort((a,b)=>b.lastDate-a.lastDate);
+}
+
 function renderAdminCustomers(){
   const camps = DB.campaigns;
   let rows = DB.regs.slice().sort((a,b)=>b.createdAt-a.createdAt);
@@ -1393,9 +1444,12 @@ function renderAdminCustomers(){
     rows = rows.filter(r => (r.firstName+' '+r.lastName).toLowerCase().includes(q) || r.phone.includes(q) || r.tickets.some(t=>t.id.toLowerCase().includes(q)));
   }
 
+  const grouped = CUST_FILTER.grouped ? groupRegsByPhone(rows) : null;
+
   App(adminShell('customers', `
     <div class="adm-topbar"><h2 style="margin:0;">Müştərilər</h2>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="toggleGroupBtn" class="btn ${CUST_FILTER.grouped?'btn-dark':'btn-ghost'} btn-sm">${CUST_FILTER.grouped?'✓ ':''}Müştəri profilləri (telefon üzrə birləşdir)</button>
         <button id="exportCsvBtn" class="btn btn-ghost btn-sm">⭳ Excel/CSV</button>
         <button id="exportPdfBtn" class="btn btn-dark btn-sm">⭳ PDF</button>
       </div>
@@ -1407,31 +1461,84 @@ function renderAdminCustomers(){
       <div class="field" style="margin:0;"><label>Mağaza</label><input id="fStore" value="${esc(CUST_FILTER.store)}"></div>
     </div>
     <div class="card" style="padding:10px 8px;overflow-x:auto;">
-      ${rows.length ? `<table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Şəhər</th><th>Mağaza</th><th>Alış tarixi</th><th>Məbləğ</th><th>Bilet</th><th>Qeydiyyat</th><th>Kampaniya</th></tr></thead><tbody>
-        ${rows.map(r=>{
-          const camp = findCampaign(r.campaignId);
-          return `<tr>
-            <td><b>${esc(r.firstName)} ${esc(r.lastName)}</b></td>
-            <td class="mono">${esc(r.phone)}</td>
-            <td>${esc(r.city)}</td>
-            <td>${esc(r.store)}</td>
-            <td>${esc(r.purchaseDate)}</td>
-            <td>${fmtMoney(r.totalAmount)}</td>
-            <td>${r.tickets.length}</td>
-            <td>${new Date(r.createdAt).toLocaleDateString('az-AZ')}</td>
-            <td>${esc(camp?camp.name:'—')}</td>
-          </tr>`;
-        }).join('')}
-      </tbody></table>` : `<div class="empty">Uyğun qeydiyyat tapılmadı.</div>`}
+      ${CUST_FILTER.grouped ? (
+        grouped.length ? `<table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Şəhər</th><th>Neçə alış</th><th>Ümumi məbləğ</th><th>Ümumi bilet</th><th>Son alış</th><th>Kampaniyalar</th><th></th></tr></thead><tbody>
+          ${grouped.map((g,i)=>`<tr>
+            <td><b>${esc(g.firstName)} ${esc(g.lastName)}</b></td>
+            <td class="mono">${esc(g.phone)}</td>
+            <td>${esc(g.city)}</td>
+            <td>${g.purchaseCount}</td>
+            <td>${fmtMoney(g.totalAmount)}</td>
+            <td>${g.totalTickets}</td>
+            <td>${new Date(g.lastDate).toLocaleDateString('az-AZ')}</td>
+            <td>${g.campNames.map(esc).join(', ')}</td>
+            <td style="text-align:right;"><button class="link-btn viewCustomerBtn" data-i="${i}">Ətraflı →</button></td>
+          </tr>`).join('')}
+        </tbody></table>` : `<div class="empty">Uyğun müştəri tapılmadı.</div>`
+      ) : (
+        rows.length ? `<table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Şəhər</th><th>Mağaza</th><th>Alış tarixi</th><th>Məbləğ</th><th>Bilet</th><th>Qeydiyyat</th><th>Kampaniya</th></tr></thead><tbody>
+          ${rows.map(r=>{
+            const camp = findCampaign(r.campaignId);
+            return `<tr>
+              <td><b>${esc(r.firstName)} ${esc(r.lastName)}</b></td>
+              <td class="mono">${esc(r.phone)}</td>
+              <td>${esc(r.city)}</td>
+              <td>${esc(r.store)}</td>
+              <td>${esc(r.purchaseDate)}</td>
+              <td>${fmtMoney(r.totalAmount)}</td>
+              <td>${r.tickets.length}</td>
+              <td>${new Date(r.createdAt).toLocaleDateString('az-AZ')}</td>
+              <td>${esc(camp?camp.name:'—')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody></table>` : `<div class="empty">Uyğun qeydiyyat tapılmadı.</div>`
+      )}
     </div>
   `));
   bindAdminShellEvents();
+  document.getElementById('toggleGroupBtn').onclick = ()=>{ CUST_FILTER.grouped = !CUST_FILTER.grouped; renderAdminCustomers(); };
+  if(CUST_FILTER.grouped){
+    document.querySelectorAll('.viewCustomerBtn').forEach(btn=>{
+      btn.onclick = ()=>openCustomerProfileModal(grouped[+btn.dataset.i]);
+    });
+  }
   document.getElementById('fQ').oninput = e=>{ CUST_FILTER.q = e.target.value; renderAdminCustomers(); };
   document.getElementById('fCamp').onchange = e=>{ CUST_FILTER.campaignId = e.target.value; renderAdminCustomers(); };
   document.getElementById('fCity').oninput = e=>{ CUST_FILTER.city = e.target.value; renderAdminCustomers(); };
   document.getElementById('fStore').oninput = e=>{ CUST_FILTER.store = e.target.value; renderAdminCustomers(); };
   document.getElementById('exportCsvBtn').onclick = ()=>exportCustomersCsv(rows);
   document.getElementById('exportPdfBtn').onclick = ()=>exportCustomersPrint(rows);
+}
+
+function openCustomerProfileModal(g){
+  const bg = document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML = `<div class="modal" style="max-width:640px;">
+    <h3 style="margin-top:0;">${esc(g.firstName)} ${esc(g.lastName)}</h3>
+    <div style="font-size:13.5px;color:rgba(17,24,32,.6);margin-bottom:4px;">📞 ${esc(g.phone)} · 📍 ${esc(g.city)}</div>
+    <div style="display:flex;gap:10px;margin:16px 0;flex-wrap:wrap;">
+      <div class="kpi-card" style="flex:1;min-width:120px;"><div class="kpi-num">${g.purchaseCount}</div><div class="kpi-label">Alış sayı</div></div>
+      <div class="kpi-card" style="flex:1;min-width:120px;"><div class="kpi-num">${fmtMoney(g.totalAmount)}</div><div class="kpi-label">Ümumi məbləğ</div></div>
+      <div class="kpi-card" style="flex:1;min-width:120px;"><div class="kpi-num">${g.totalTickets}</div><div class="kpi-label">Ümumi bilet</div></div>
+    </div>
+    <h4 style="margin:0 0 10px;font-size:14px;">Alış tarixçəsi</h4>
+    <div style="max-height:340px;overflow-y:auto;">
+      ${g.purchases.map(p=>{
+        const camp = findCampaign(p.campaignId);
+        return `<div style="border:1px solid var(--line-soft);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:700;">
+            <span>${esc(p.purchaseDate)} — ${esc(p.store)}</span>
+            <span>${fmtMoney(p.totalAmount)}</span>
+          </div>
+          <div style="font-size:12.5px;color:rgba(17,24,32,.55);margin-top:4px;">${esc(camp?camp.name:'—')} · ${p.tickets.length} bilet</div>
+          <div style="font-size:11.5px;color:rgba(17,24,32,.4);margin-top:6px;" class="mono">${p.tickets.map(t=>esc(t.id)).join(', ')}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <button type="button" class="btn btn-dark btn-block" id="closeCustProfile" style="margin-top:6px;">Bağla</button>
+  </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#closeCustProfile').onclick = ()=>bg.remove();
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
 }
 
 function exportCustomersCsv(rows){
