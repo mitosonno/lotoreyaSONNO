@@ -129,6 +129,8 @@
 
   /* ---------- customer flow ---------- */
   .steps{display:flex;gap:8px;margin-bottom:28px;}
+  .info-banner{display:flex;gap:12px;align-items:flex-start;background:#e3f5ef;border:1px solid rgba(0,117,101,.18);border-radius:14px;padding:14px 16px;margin-bottom:22px;font-size:13.5px;color:var(--green-dk);line-height:1.55;}
+  .info-banner-icon{font-size:19px;flex-shrink:0;line-height:1;}
   .step-dot{flex:1;height:4px;border-radius:4px;background:var(--line-soft);}
   .step-dot.active{background:var(--orange);}
   .step-dot.done{background:var(--green);}
@@ -528,6 +530,12 @@ function renderCustomerFlow(slug){
 
   App(publicShell(c, `
     <div class="steps"><div class="step-dot active"></div><div class="step-dot"></div></div>
+    <div class="info-banner">
+      <div class="info-banner-icon">📋</div>
+      <div>
+        <b>Məhsulun üzərindəki QR kodu skan edin</b>, məlumatları doldurun və QR kodun altındakı unikal kodu əlavə edin. Uğurlar! 🍀
+      </div>
+    </div>
     <h2 style="margin:0 0 6px;">Məlumatlarınızı daxil edin</h2>
     <p style="color:rgba(17,24,32,.55);margin:0 0 22px;font-size:14.5px;">1–2 dəqiqə çəkəcək. Bütün sahələr tələb olunur.</p>
 
