@@ -134,8 +134,12 @@
   .step-dot.done{background:var(--green);}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   @media(max-width:560px){.grid2{grid-template-columns:1fr;}}
-  .prod-row{display:grid;grid-template-columns:1.6fr .7fr .9fr auto;gap:10px;align-items:end;margin-bottom:12px;}
+  .prod-row{display:grid;grid-template-columns:1.6fr .7fr .9fr auto;gap:10px;align-items:end;margin-bottom:8px;}
   @media(max-width:640px){.prod-row{grid-template-columns:1fr 1fr;}}
+  .code-inputs{background:var(--cream);border-radius:12px;padding:12px 14px;margin-bottom:16px;}
+  .code-inputs-grid{display:flex;flex-wrap:wrap;gap:8px;}
+  .code-inputs-grid input{width:auto;flex:1 1 110px;min-width:90px;padding:10px 12px;border-radius:9px;border:1.5px solid var(--line-soft);background:#fff;font-size:13.5px;outline:none;}
+  .code-inputs-grid input:focus{border-color:var(--orange);}
   .prod-total{background:var(--cream);border-radius:14px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
   .icon-btn{width:38px;height:38px;border-radius:10px;background:#fde9d6;color:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;}
   .icon-btn.rm{background:#fbe4e4;color:#a13a3a;}
@@ -377,22 +381,6 @@ function toast(msg, type){
   wrap.appendChild(el);
   setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
 }
-function existingTicketIds(){
-  const set = new Set();
-  DB.regs.forEach(r => (r.tickets||[]).forEach(t => set.add(t.id)));
-  return set;
-}
-function genTicketId(existing){
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ambiguous chars removed
-  let id;
-  do{
-    let s = '';
-    for(let i=0;i<5;i++) s += chars[Math.floor(Math.random()*chars.length)];
-    id = 'SONNO-26-' + s;
-  } while(existing.has(id));
-  existing.add(id);
-  return id;
-}
 function maskName(first,last){
   const f = first ? first[0]+'***' : '***';
   const l = last ? last[0]+'***' : '***';
@@ -460,6 +448,7 @@ function render(){
     if(parts[1]==='draw' && parts[2]) return renderAdminDraw(parts[2]);
     if(parts[1]==='archive') return renderAdminArchive();
     if(parts[1]==='products') return renderAdminProducts();
+    if(parts[1]==='codes') return renderAdminCodes();
     return renderAdminDashboard();
   }
   if(parts[0]==='campaign' && parts[1]){
@@ -516,7 +505,7 @@ function renderCustomerFlow(slug){
     return;
   }
   if(!CF_STATE.campaignId || CF_STATE.campaignId !== c.id){
-    CF_STATE = { campaignId:c.id, step: c.status==='Aktiv' ? 'form':'closed', items:[{id:uid('it'),product:DB.products[0]||'Stul',qty:1,price:0}], consent:false, submitted:null };
+    CF_STATE = { campaignId:c.id, step: c.status==='Aktiv' ? 'form':'closed', items:[{id:uid('it'),product:DB.products[0]||'Stul',qty:1,price:0,codes:['']}], consent:false, submitted:null };
   }
 
   if(c.status!=='Aktiv' && CF_STATE.step!=='result'){
@@ -587,7 +576,7 @@ function renderCustomerFlow(slug){
 
   renderProdRows();
   document.getElementById('addProdBtn').onclick = ()=>{
-    CF_STATE.items.push({id:uid('it'),product:DB.products[0]||'Stul',qty:1,price:0});
+    CF_STATE.items.push({id:uid('it'),product:DB.products[0]||'Stul',qty:1,price:0,codes:['']});
     renderProdRows();
   };
   document.getElementById('custForm').addEventListener('submit', onCustomerSubmit);
@@ -660,7 +649,11 @@ function startCountdownTicker(){
 function renderProdRows(){
   const list = document.getElementById('prodList');
   if(!list) return;
-  list.innerHTML = CF_STATE.items.map((it,idx)=>`
+  list.innerHTML = CF_STATE.items.map((it,idx)=>{
+    const codesHtml = Array.from({length: Math.max(1, it.qty||1)}).map((_,ci)=>`
+      <input type="text" class="it-code mono" data-ci="${ci}" placeholder="Kod ${ci+1}" value="${esc(it.codes[ci]||'')}" style="text-transform:uppercase;">
+    `).join('');
+    return `
     <div class="prod-row" data-idx="${idx}">
       <div class="field" style="margin:0;"><label>Məhsul</label>
         <select class="it-product">${DB.products.map(p=>`<option ${p===it.product?'selected':''}>${esc(p)}</option>`).join('')}</select>
@@ -669,13 +662,32 @@ function renderProdRows(){
       <div class="field" style="margin:0;"><label>1 ədəd (₼)</label><input type="number" min="0" step="0.01" class="it-price" value="${it.price||''}"></div>
       <button type="button" class="icon-btn rm it-rm" title="Sil" ${CF_STATE.items.length===1?'style="opacity:.3;pointer-events:none;"':''}>✕</button>
     </div>
-  `).join('');
+    <div class="code-inputs" data-idx="${idx}">
+      <label style="font-size:11.5px;font-weight:700;color:rgba(17,24,32,.5);text-transform:uppercase;display:block;margin-bottom:6px;">Məhsulun üzərindəki kod${(it.qty||1)>1?'ları':'u'} (hər vahid üçün ayrı)</label>
+      <div class="code-inputs-grid">${codesHtml}</div>
+    </div>
+    `;
+  }).join('');
   list.querySelectorAll('.prod-row').forEach(row=>{
     const idx = +row.dataset.idx;
     row.querySelector('.it-product').onchange = e=>{ CF_STATE.items[idx].product = e.target.value; };
-    row.querySelector('.it-qty').oninput = e=>{ CF_STATE.items[idx].qty = +e.target.value||0; updateTotals(); };
+    row.querySelector('.it-qty').oninput = e=>{
+      const q = Math.max(1, +e.target.value||1);
+      CF_STATE.items[idx].qty = q;
+      const codes = CF_STATE.items[idx].codes;
+      codes.length = q; // uzunluğu miqdara uyğunlaşdır (artıqları at, çatmayanları boş saxla)
+      for(let i=0;i<q;i++) if(codes[i]===undefined) codes[i]='';
+      renderProdRows(); updateTotals();
+    };
     row.querySelector('.it-price').oninput = e=>{ CF_STATE.items[idx].price = +e.target.value||0; updateTotals(); };
     row.querySelector('.it-rm').onclick = ()=>{ CF_STATE.items.splice(idx,1); renderProdRows(); updateTotals(); };
+  });
+  list.querySelectorAll('.code-inputs').forEach(wrap=>{
+    const idx = +wrap.dataset.idx;
+    wrap.querySelectorAll('.it-code').forEach(inp=>{
+      const ci = +inp.dataset.ci;
+      inp.oninput = e=>{ CF_STATE.items[idx].codes[ci] = e.target.value.trim().toUpperCase(); };
+    });
   });
 }
 function updateTotals(){
@@ -683,13 +695,6 @@ function updateTotals(){
   const ticketCount = Math.floor(total / TICKET_PRICE_STEP);
   const tEl = document.getElementById('totalAmountLbl'); if(tEl) tEl.textContent = fmtMoney(total);
   const cEl = document.getElementById('ticketCountLbl'); if(cEl) cEl.textContent = ticketCount + ' bilet';
-}
-
-function genTicketId(){
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // ambiguous simvollar çıxarılıb
-  let s = '';
-  for(let i=0;i<5;i++) s += chars[Math.floor(Math.random()*chars.length)];
-  return 'SONNO-26-' + s;
 }
 
 async function onCustomerSubmit(e){
@@ -702,42 +707,64 @@ async function onCustomerSubmit(e){
   const ticketCount = Math.floor(total / TICKET_PRICE_STEP);
   if(ticketCount < 1){ toast('Bilet qazanmaq üçün minimum 200 ₼ alış lazımdır', 'err'); return; }
 
+  // Hər məhsul vahidi üçün kod yazılıb-yazılmadığını yoxla
+  const allCodes = [];
+  for(const it of items){
+    const codes = (it.codes||[]).slice(0, it.qty).map(x=>(x||'').trim().toUpperCase());
+    if(codes.length < it.qty || codes.some(x=>!x)){
+      toast(`"${it.product}" üçün bütün məhsul kodlarını daxil edin (${it.qty} ədəd)`, 'err');
+      return;
+    }
+    allCodes.push(...codes);
+  }
+  if(new Set(allCodes).size !== allCodes.length){
+    toast('Eyni kod birdən çox dəfə yazılıb — hər kod fərqli olmalıdır', 'err');
+    return;
+  }
+
   const phone = fd.get('phone').trim();
   const store = fd.get('store').trim();
   const purchaseDate = fd.get('purchaseDate');
   const firstName = fd.get('firstName').trim();
   const lastName = fd.get('lastName').trim();
   const city = fd.get('city').trim();
-  const dupHash = `${phone}|${store}|${purchaseDate}|${total}|${c.id}`.toLowerCase();
 
   const submitBtn = e.target.querySelector('button[type=submit]');
-  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Göndərilir...'; }
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Yoxlanılır...'; }
 
-  const regId = crypto.randomUUID();
-  const {error: regErr} = await sb.from('registrations').insert({
-    id: regId, campaign_id: c.id, first_name: firstName, last_name: lastName,
-    phone, city, store, purchase_date: purchaseDate, items, total_amount: total, dup_hash: dupHash
+  const { data, error } = await sb.rpc('submit_registration', {
+    p_campaign_id: c.id, p_first_name: firstName, p_last_name: lastName, p_phone: phone,
+    p_city: city, p_store: store, p_purchase_date: purchaseDate,
+    p_items: items.map(it=>({product:it.product, qty:it.qty, price:it.price})),
+    p_codes: allCodes
   });
-  if(regErr){
+
+  if(error){
     if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Qeydiyyatı tamamla'; }
-    if(regErr.code === '23505'){ toast('Bu alış artıq sistemdə qeydiyyatdan keçirilib.', 'err'); }
-    else { toast('Xəta: '+regErr.message, 'err'); }
+    toast('Xəta: '+error.message, 'err');
+    return;
+  }
+  if(!data || !data.ok){
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Qeydiyyatı tamamla'; }
+    const errMap = {
+      duplicate: 'Bu alış artıq sistemdə qeydiyyatdan keçirilib.',
+      code_count_mismatch: 'Daxil edilən kodların sayı məhsul miqdarına uyğun gəlmir.',
+      below_minimum: 'Bilet qazanmaq üçün minimum 200 ₼ alış lazımdır.',
+      missing_fields: 'Zəhmət olmasa bütün sahələri doldurun.',
+    };
+    const errMsg = (data && data.error) || '';
+    if(errMsg.startsWith('invalid_code')){
+      toast('Kodlardan biri yanlış və ya artıq istifadə olunub: ' + errMsg.split(':')[1], 'err');
+    } else {
+      toast(errMap[errMsg] || ('Xəta: '+errMsg), 'err');
+    }
     return;
   }
 
-  // Hər bilet üçün DB-də UNIQUE constraint var — toqquşma (nadir) halında yenidən cəhd edilir
-  const tickets = [];
-  for(let i=0;i<ticketCount;i++){
-    let inserted = false;
-    for(let attempt=0; attempt<6 && !inserted; attempt++){
-      const code = genTicketId();
-      const {error: tErr} = await sb.from('tickets').insert({ id: crypto.randomUUID(), ticket_code: code, campaign_id: c.id, registration_id: regId, status:'Aktiv' });
-      if(!tErr){ tickets.push({id:code, status:'Aktiv'}); inserted = true; }
-      else if(tErr.code !== '23505'){ console.error('ticket insert error', tErr); break; }
-    }
-  }
-
-  const reg = { id:regId, campaignId:c.id, firstName, lastName, phone, city, store, purchaseDate, items, totalAmount: total, tickets, dupHash, createdAt: Date.now() };
+  const reg = {
+    id: data.registration_id, campaignId:c.id, firstName, lastName, phone, city, store, purchaseDate,
+    items, totalAmount: data.total_amount, tickets: data.tickets, createdAt: Date.now()
+  };
 
   CF_STATE.step = 'result';
   CF_STATE.submitted = reg;
@@ -858,7 +885,7 @@ function renderAdminLogin(){
 function adminShell(active, inner){
   const items = [
     ['','İdarə paneli','📊'],['campaigns','Kampaniyalar','🎯'],['customers','Müştərilər','👥'],
-    ['products','Məhsullar','🛋'],['archive','Arxiv','🗂'],
+    ['codes','Məhsul Kodları','🏷'],['products','Məhsullar','🛋'],['archive','Arxiv','🗂'],
   ];
   const activeLabel = (items.find(([r])=>r===active) || items[0])[1];
   return `
@@ -1191,7 +1218,169 @@ function renderAdminProducts(){
   });
 }
 
-/* ---------------- admin: customers ---------------- */
+/* ---------------- admin: product codes (fraud prevention) ---------------- */
+async function loadCodesStats(){
+  const totalQ = await sb.from('product_codes').select('*', {count:'exact', head:true});
+  const usedQ = await sb.from('product_codes').select('*', {count:'exact', head:true}).eq('status','used');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayQ = await sb.from('product_codes').select('*', {count:'exact', head:true}).eq('status','used').gte('used_at', today.toISOString());
+  const byStoreQ = await sb.from('codes_by_store').select('*').limit(60);
+  const total = totalQ.count || 0, used = usedQ.count || 0;
+  return { total, used, unused: total-used, usedToday: todayQ.count || 0, byStore: byStoreQ.data || [] };
+}
+
+async function renderAdminCodes(){
+  App(adminShell('codes', `<div class="empty">Yüklənir...</div>`));
+  bindAdminShellEvents();
+  let stats;
+  try{ stats = await loadCodesStats(); }
+  catch(e){ App(adminShell('codes', `<div class="empty">Statistika yüklənmədi: ${esc(e.message||'')}</div>`)); bindAdminShellEvents(); return; }
+
+  App(adminShell('codes', `
+    <div class="adm-topbar">
+      <div><h2 style="margin:0;">Məhsul Kodları</h2><p style="margin:4px 0 0;font-size:13px;color:rgba(17,24,32,.5);">Hər fiziki məhsula yapışdırılan unikal kod — yalnız 1 dəfə qeydiyyatda istifadə oluna bilər.</p></div>
+      <button id="genCodesBtn" class="btn btn-primary btn-sm">+ Yeni kod dəsti yarat</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-num">${stats.total}</div><div class="kpi-label">Ümumi yaradılmış kod</div></div>
+      <div class="kpi-card"><div class="kpi-num">${stats.used}</div><div class="kpi-label">İstifadə olunub (satılıb)</div></div>
+      <div class="kpi-card"><div class="kpi-num">${stats.unused}</div><div class="kpi-label">Hələ boşdur (anbarda)</div></div>
+      <div class="kpi-card"><div class="kpi-num">${stats.usedToday}</div><div class="kpi-label">Bu gün satılıb</div></div>
+    </div>
+    <div class="card" style="padding:22px;">
+      <h3 style="margin:0 0 14px;font-size:15px;">Mağazalar üzrə satış (gün-gün)</h3>
+      ${stats.byStore.length ? `<table><thead><tr><th>Mağaza</th><th>Tarix</th><th>Satılan kod sayı</th></tr></thead><tbody>
+        ${stats.byStore.map(r=>`<tr><td><b>${esc(r.store||'—')}</b></td><td>${new Date(r.used_day).toLocaleDateString('az-AZ')}</td><td>${r.codes_used}</td></tr>`).join('')}
+      </tbody></table>` : `<div class="empty">Hələ heç bir kod istifadə olunmayıb.</div>`}
+    </div>
+  `));
+  bindAdminShellEvents();
+  document.getElementById('genCodesBtn').onclick = openGenCodesModal;
+}
+
+function openGenCodesModal(){
+  const activeCamps = DB.campaigns.filter(c=>c.status!=='Tamamlanıb');
+  const bg = document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML = `<div class="modal">
+    <h3 style="margin-top:0;">Yeni kod dəsti yarat</h3>
+    <p style="font-size:13px;color:rgba(17,24,32,.55);margin-top:-8px;">Kodlar CSV faylı kimi yüklənəcək, üstəlik 5×5 sm ölçüdə çap-hazır stiker vərəqi də avtomatik açılacaq (hər stikerdə seçdiyiniz kampaniyanın QR-ı + unikal kod).</p>
+    <form id="genCodesForm">
+      <div class="field"><label>Hansı kampaniya üçün?</label>
+        <select required name="campaignId">
+          <option value="">— seçin —</option>
+          ${activeCamps.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>Neçə ədəd kod?</label><input required type="number" min="1" max="5000" name="qty" placeholder="1000"></div>
+      <div class="field"><label>Qeyd (istəyə bağlı)</label><input name="note" placeholder="Məsələn: Stullar — Avqust 2026"></div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="button" class="btn btn-ghost btn-block" id="cancelGenCodes">Ləğv et</button>
+        <button class="btn btn-primary btn-block">Yarat</button>
+      </div>
+    </form>
+    <div id="genCodesProgress" style="display:none;margin-top:14px;font-size:13px;color:rgba(17,24,32,.6);text-align:center;"></div>
+  </div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#cancelGenCodes').onclick = ()=>bg.remove();
+  bg.onclick = (e)=>{ if(e.target===bg) bg.remove(); };
+  bg.querySelector('#genCodesForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const campaignId = fd.get('campaignId');
+    const campaign = findCampaign(campaignId);
+    if(!campaign){ toast('Kampaniya seçin', 'err'); return; }
+    const qty = Math.min(5000, Math.max(1, +fd.get('qty')));
+    const note = fd.get('note').trim();
+    const form = e.target; const progress = bg.querySelector('#genCodesProgress');
+    form.style.display='none'; progress.style.display='block';
+    progress.textContent = `0 / ${qty} kod yaradılır...`;
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const genCode = ()=>{ let s=''; for(let i=0;i<8;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; };
+    const allCodes = new Set();
+    while(allCodes.size < qty) allCodes.add(genCode());
+    const codesArr = Array.from(allCodes);
+
+    const batchSize = 500;
+    let inserted = 0;
+    const createdCodes = [];
+    for(let i=0;i<codesArr.length;i+=batchSize){
+      const batch = codesArr.slice(i,i+batchSize).map(code=>({ code, batch_note: note||null, campaign_id: campaign.id }));
+      const {data, error} = await sb.from('product_codes').insert(batch).select('code');
+      if(error){ toast('Xəta: '+error.message, 'err'); progress.textContent = `Xəta baş verdi — ${inserted} kod yaradılmışdı, dayandırıldı.`; return; }
+      inserted += batch.length;
+      createdCodes.push(...(data||[]).map(r=>r.code));
+      progress.textContent = `${inserted} / ${qty} kod yaradılır...`;
+    }
+
+    const csv = 'Kod\n' + createdCodes.join('\n');
+    const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `sonno-kodlar-${Date.now()}.csv`; a.click();
+
+    printCodeStickers(campaign, createdCodes);
+
+    toast(`${inserted} kod uğurla yaradıldı, CSV yükləndi və stiker vərəqi açıldı`, 'ok');
+    bg.remove();
+    renderAdminCodes();
+  };
+}
+
+/* ---------------- çap üçün stiker vərəqi: 5×5 sm, marka QR-ı + unikal kod ---------------- */
+function printCodeStickers(campaign, codes){
+  const url = campaignUrl(campaign.slug);
+  const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&color=111820&bgcolor=ffffff&data=${encodeURIComponent(url)}`;
+
+  const w = window.open('', '_blank');
+  if(!w){ toast('Brauzer pəncərəni blokladı — popup icazəsi verin', 'err'); return; }
+
+  w.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8">
+  <title>SONNO — Kod stikerləri (${esc(campaign.name)})</title>
+  <style>
+    @page{ size:A4; margin:0.6cm; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:#fff; }
+    .toolbar{ padding:14px 18px; background:#111820; color:#fff; display:flex; justify-content:space-between; align-items:center; font-family:Arial; }
+    .toolbar button{ background:#F78930; color:#fff; border:none; padding:10px 20px; border-radius:100px; font-weight:700; cursor:pointer; font-size:13px; }
+    .sheet{ display:flex; flex-wrap:wrap; gap:0; padding:0.4cm; }
+    .sticker{
+      width:5cm; height:5cm; box-sizing:border-box;
+      border:1px dashed #c9c2b4;
+      display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+      padding:0.3cm; text-align:center; page-break-inside:avoid; position:relative; overflow:hidden;
+    }
+    .sticker::before{
+      content:""; position:absolute; top:-0.5cm; right:-0.5cm; width:1.4cm; height:1.4cm;
+      background:#F78930; border-radius:50%; opacity:0.13;
+    }
+    .brand{ display:flex; align-items:center; gap:0.09cm; position:relative; z-index:1; }
+    .brand img{ height:0.32cm; width:auto; }
+    .brand b{ font-family:Georgia,'Times New Roman',serif; font-size:7.5pt; color:#111820; letter-spacing:0.3px; }
+    .qr{ width:2.3cm; height:2.3cm; position:relative; z-index:1; }
+    .codechip{
+      font-family:'Courier New',monospace; font-weight:700; font-size:8.5pt; letter-spacing:1.3px;
+      color:#fff; background:#004F51; padding:0.09cm 0.22cm; border-radius:0.2cm; position:relative; z-index:1;
+    }
+    @media print{ .toolbar{ display:none; } .sheet{ padding:0; } }
+  </style></head>
+  <body>
+    <div class="toolbar">
+      <div>SONNO — ${esc(campaign.name)} — ${codes.length} stiker (5×5 sm)</div>
+      <button onclick="window.print()">Çap et</button>
+    </div>
+    <div class="sheet">
+      ${codes.map(code => `
+        <div class="sticker">
+          <div class="brand"><img src="${LOGO_ORANGE}"><b>SONNO</b></div>
+          <img class="qr" src="${qrImg}">
+          <div class="codechip">${esc(code)}</div>
+        </div>
+      `).join('')}
+    </div>
+  </body></html>`);
+  w.document.close();
+}
+
+
 let CUST_FILTER = { q:'', campaignId:'', city:'', store:'' };
 function renderAdminCustomers(){
   const camps = DB.campaigns;
