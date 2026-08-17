@@ -111,9 +111,12 @@
   .prize-cards::-webkit-scrollbar{display:none;}
   .prize-card{flex:0 0 auto;min-width:148px;max-width:168px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.35);border-radius:16px;padding:16px 14px;text-align:center;}
   .prize-emoji{font-size:30px;margin-bottom:8px;}
+  .prize-qty{display:inline-block;background:var(--dark);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:100px;margin-bottom:6px;letter-spacing:.02em;}
   .prize-name{color:#fff;font-weight:700;font-size:14px;line-height:1.25;font-family:'Lora',serif;}
   .prize-value{color:#fff;opacity:.85;font-size:12px;margin-top:5px;font-weight:600;}
   .prize-count{display:inline-block;margin-top:8px;background:rgba(255,255,255,.22);color:#fff;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:100px;}
+  .live-info{position:relative;z-index:2;margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);}
+  .live-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;padding:5px 11px;border-radius:100px;font-weight:600;font-size:11.5px;}
 
   .terms-link{background:none;border:none;color:var(--green);font-weight:700;font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;}
 
@@ -627,6 +630,7 @@ function prizesBanner(c){
       ${prizes.map((p,i)=>`
         <div class="prize-card">
           <div class="prize-emoji">${emojis[i%emojis.length]}</div>
+          <div class="prize-qty">${p.quantity||1} ədəd</div>
           <div class="prize-name">${esc(p.name)}</div>
           ${p.value?`<div class="prize-value">${esc(p.value)}</div>`:''}
           ${p.winnerCount>1?`<div class="prize-count">${p.winnerCount} qalib</div>`:''}
@@ -640,12 +644,17 @@ function countdownHero(c){
   <div class="hero" style="padding:32px 28px;">
     <div class="grain"></div>
     <div style="position:relative;z-index:2;">
-      <div class="eyebrow">● Çəkilişə qalan vaxt</div>
+      <div class="eyebrow">● Oyun vaxtı</div>
       <div class="cd-wrap" id="cdWrap" data-target="${esc(c.drawDate)}">
         <div class="cd-box"><div class="cd-num" id="cd-d">--</div><div class="cd-label">Gün</div></div>
         <div class="cd-box"><div class="cd-num" id="cd-h">--</div><div class="cd-label">Saat</div></div>
         <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Dəqiqə</div></div>
         <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Saniyə</div></div>
+      </div>
+      <div class="live-info">
+        <span>📡 Canlı yayım:</span>
+        <span class="live-chip">📸 Instagram — sonno.az</span>
+        <span class="live-chip">🎵 TikTok — sonno.az</span>
       </div>
     </div>
   </div>`;
