@@ -477,7 +477,7 @@ function renderHome(){
   App(`
   <div class="container" style="padding-top:26px;">
     <div class="pubnav">
-      <div class="brandmark"><div class="s">${logoMark()}</div>SONNO</div>
+      <a href="https://sonno.az" target="_blank" rel="noopener" class="brandmark"><div class="s">${logoMark()}</div>SONNO</a>
       <a href="#/admin" class="btn btn-ghost btn-sm">İdarə paneli</a>
     </div>
     <div class="hero">
@@ -889,9 +889,9 @@ function renderAdminLogin(){
   App(`
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark);padding:20px;">
     <div class="card" style="max-width:380px;width:100%;padding:34px;">
-      <div class="brandmark" style="margin-bottom:22px;">
+      <a href="https://sonno.az" target="_blank" rel="noopener" class="brandmark" style="margin-bottom:22px;">
         <div class="s" style="background:var(--dark);">${logoMark()}</div>SONNO <span style="font-weight:500;font-size:14px;color:rgba(17,24,32,.5);">İdarə paneli</span>
-      </div>
+      </a>
       <form id="loginForm">
         <div class="field"><label>E-poçt</label><input type="email" name="email" placeholder="admin@sonno.az" required autocomplete="username"></div>
         <div class="field"><label>Parol</label><input type="password" name="password" placeholder="••••••••" required autocomplete="current-password"></div>
@@ -921,7 +921,7 @@ function adminShell(active, inner){
   return `
   <div class="adm-shell">
     <div class="adm-side">
-      <div class="brandmark" style="color:#fff;margin-bottom:26px;padding:0 10px;"><div class="s">${logoMark()}</div>SONNO</div>
+      <a href="https://sonno.az" target="_blank" rel="noopener" class="brandmark" style="color:#fff;margin-bottom:26px;padding:0 10px;"><div class="s">${logoMark()}</div>SONNO</a>
       ${items.map(([r,label,icon])=>`<a class="adm-nav-item ${active===r?'active':''}" href="#/admin${r?'/'+r:''}">${icon} ${label}</a>`).join('')}
       <div style="flex:1;"></div>
       <div style="padding:12px 10px;font-size:12px;color:rgba(255,255,255,.4);word-break:break-all;">${esc(ADMIN_SESSION?.email||'')}</div>
@@ -929,7 +929,7 @@ function adminShell(active, inner){
     </div>
 
     <div class="adm-mobile-topbar">
-      <div class="brandmark" style="color:#fff;"><div class="s">${logoMark()}</div>SONNO</div>
+      <a href="https://sonno.az" target="_blank" rel="noopener" class="brandmark" style="color:#fff;"><div class="s">${logoMark()}</div>SONNO</a>
       <div class="adm-mobile-title">${activeLabel}</div>
       <button id="mobileMenuBtn" class="adm-mobile-burger" aria-label="Menyu">☰</button>
     </div>
