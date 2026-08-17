@@ -1381,35 +1381,49 @@ function printCodeStickers(campaign, codes){
     body{ margin:0; font-family:Arial,Helvetica,sans-serif; background:#fff; }
     .toolbar{ padding:14px 18px; background:#111820; color:#fff; display:flex; justify-content:space-between; align-items:center; font-family:Arial; }
     .toolbar button{ background:#F78930; color:#fff; border:none; padding:10px 20px; border-radius:100px; font-weight:700; cursor:pointer; font-size:13px; }
+    .toolbar .note{ font-size:11.5px; color:rgba(255,255,255,.55); margin-top:2px; }
     .sheet{ display:flex; flex-wrap:wrap; gap:0; padding:0.4cm; }
     .sticker{
       width:5cm; height:5cm; box-sizing:border-box;
       border:1px dashed #c9c2b4;
-      display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-      padding:0.3cm; text-align:center; page-break-inside:avoid; position:relative; overflow:hidden;
+      display:flex; flex-direction:column; align-items:center;
+      padding:0.22cm 0.28cm 0.26cm; text-align:center; page-break-inside:avoid; position:relative; overflow:hidden;
     }
     .sticker::before{
-      content:""; position:absolute; top:-0.5cm; right:-0.5cm; width:1.4cm; height:1.4cm;
-      background:#F78930; border-radius:50%; opacity:0.13;
+      content:""; position:absolute; top:-0.55cm; right:-0.55cm; width:1.4cm; height:1.4cm;
+      background:#F78930; border-radius:50%; opacity:0.12;
     }
-    .brand{ display:flex; align-items:center; gap:0.09cm; position:relative; z-index:1; }
-    .brand img{ height:0.32cm; width:auto; }
-    .brand b{ font-family:Georgia,'Times New Roman',serif; font-size:7.5pt; color:#111820; letter-spacing:0.3px; }
-    .qr{ width:2.3cm; height:2.3cm; position:relative; z-index:1; }
+    .hole-row{ width:100%; display:flex; justify-content:center; margin-bottom:0.1cm; position:relative; z-index:1; }
+    .hole{ width:0.32cm; height:0.32cm; border-radius:50%; border:1px dashed #9b9488; background:#fff; }
+    .promo{
+      font-family:Georgia,'Times New Roman',serif; font-weight:700; font-size:6.6pt; line-height:1.25;
+      color:#F78930; margin:0.02cm 0 0.14cm; position:relative; z-index:1; letter-spacing:0.1px;
+    }
+    .promo span{ display:block; color:#111820; font-family:Arial,Helvetica,sans-serif; font-weight:700; font-size:6pt; margin-top:0.02cm; letter-spacing:0.4px; }
+    .brand{ display:flex; align-items:center; gap:0.08cm; position:relative; z-index:1; margin-bottom:0.12cm; }
+    .brand img{ height:0.28cm; width:auto; }
+    .brand b{ font-family:Georgia,'Times New Roman',serif; font-size:6.8pt; color:#111820; letter-spacing:0.3px; }
+    .qr{ width:2.05cm; height:2.05cm; position:relative; z-index:1; }
     .codechip{
-      font-family:'Courier New',monospace; font-weight:700; font-size:8.5pt; letter-spacing:1.3px;
-      color:#fff; background:#004F51; padding:0.09cm 0.22cm; border-radius:0.2cm; position:relative; z-index:1;
+      font-family:'Courier New',monospace; font-weight:700; font-size:8pt; letter-spacing:1.2px;
+      color:#fff; background:#004F51; padding:0.08cm 0.2cm; border-radius:0.2cm; position:relative; z-index:1;
+      margin-top:0.14cm;
     }
     @media print{ .toolbar{ display:none; } .sheet{ padding:0; } }
   </style></head>
   <body>
     <div class="toolbar">
-      <div>SONNO — ${esc(campaign.name)} — ${codes.length} stiker (5×5 sm)</div>
+      <div>
+        SONNO — ${esc(campaign.name)} — ${codes.length} stiker (5×5 sm)
+        <div class="note">Çap etdikdən sonra hər stikerin yuxarısındakı dairəni deşin — ipi keçirib stula bağlaya bilərsiniz.</div>
+      </div>
       <button onclick="window.print()">Çap et</button>
     </div>
     <div class="sheet">
       ${codes.map(code => `
         <div class="sticker">
+          <div class="hole-row"><div class="hole"></div></div>
+          <div class="promo">🎁 QR-u SKAN ET<span>LOTEREYADA İŞTİRAK ET!</span></div>
           <div class="brand"><img src="${LOGO_ORANGE}"><b>SONNO</b></div>
           <img class="qr" src="${qrImg}">
           <div class="codechip">${esc(code)}</div>
