@@ -115,7 +115,9 @@
   .prize-name{color:#fff;font-weight:700;font-size:14px;line-height:1.25;font-family:'Lora',serif;}
   .prize-value{color:#fff;opacity:.85;font-size:12px;margin-top:5px;font-weight:600;}
   .prize-count{display:inline-block;margin-top:8px;background:rgba(255,255,255,.22);color:#fff;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:100px;}
-  .live-info{position:relative;z-index:2;margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);}
+  .draw-date-note{position:relative;z-index:2;margin-top:16px;font-size:13px;color:#fff;}
+  .draw-date-note b{color:var(--orange);}
+  .live-info{position:relative;z-index:2;margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);}
   .live-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;padding:5px 11px;border-radius:100px;font-weight:600;font-size:11.5px;}
 
   .terms-link{background:none;border:none;color:var(--green);font-weight:700;font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;}
@@ -640,6 +642,7 @@ function prizesBanner(c){
 }
 
 function countdownHero(c){
+  const drawDateFormatted = new Date(c.drawDate).toLocaleString('az-AZ', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Baku' });
   return `
   <div class="hero" style="padding:32px 28px;">
     <div class="grain"></div>
@@ -651,10 +654,11 @@ function countdownHero(c){
         <div class="cd-box"><div class="cd-num" id="cd-m">--</div><div class="cd-label">Dəqiqə</div></div>
         <div class="cd-box"><div class="cd-num" id="cd-s">--</div><div class="cd-label">Saniyə</div></div>
       </div>
+      <div class="draw-date-note">🗓 Canlı çəkiliş tarixi: <b>${drawDateFormatted}</b></div>
       <div class="live-info">
         <span>📡 Canlı yayım:</span>
-        <span class="live-chip">📸 Instagram — sonno.az</span>
-        <span class="live-chip">🎵 TikTok — sonno.az</span>
+        <span class="live-chip">Instagram — sonno.az</span>
+        <span class="live-chip">TikTok — sonno.az</span>
       </div>
     </div>
   </div>`;
