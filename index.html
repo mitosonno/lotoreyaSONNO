@@ -130,6 +130,8 @@
   /* ---------- customer flow ---------- */
   .steps{display:flex;gap:8px;margin-bottom:28px;}
   .info-banner{display:flex;gap:12px;align-items:flex-start;background:#e3f5ef;border:1px solid rgba(0,117,101,.18);border-radius:14px;padding:14px 16px;margin-bottom:22px;font-size:13.5px;color:var(--green-dk);line-height:1.55;}
+  .poster-wrap{width:100%;border-radius:20px;overflow:hidden;margin-bottom:16px;background:var(--dark);}
+  .poster-banner{width:100%;aspect-ratio:3/1;object-fit:cover;display:block;}
   .info-banner-icon{font-size:19px;flex-shrink:0;line-height:1;}
   .step-dot{flex:1;height:4px;border-radius:4px;background:var(--line-soft);}
   .step-dot.active{background:var(--orange);}
@@ -273,6 +275,7 @@
 <body>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <div class="toast-wrap" id="toastWrap"></div>
 <div id="app"></div>
 
@@ -311,7 +314,7 @@ let currentRoute = '';
 
 /* ---------------- Supabase <-> JS obyekt xəritələməsi ---------------- */
 function mapCampaign(r){
-  return { id:r.id, slug:r.slug, name:r.name, description:r.description||'', startDate:r.start_date, endDate:r.end_date, drawDate:r.draw_date, status:r.status, prizes:r.prizes||[], createdAt:new Date(r.created_at).getTime() };
+  return { id:r.id, slug:r.slug, name:r.name, description:r.description||'', startDate:r.start_date, endDate:r.end_date, drawDate:r.draw_date, status:r.status, prizes:r.prizes||[], posterUrl:r.poster_url||'', createdAt:new Date(r.created_at).getTime() };
 }
 function mapRegistration(r, tickets){
   return { id:r.id, campaignId:r.campaign_id, firstName:r.first_name, lastName:r.last_name, phone:r.phone, city:r.city, store:r.store, purchaseDate:r.purchase_date, items:r.items||[], totalAmount:Number(r.total_amount), tickets: tickets||[], dupHash:r.dup_hash, createdAt:new Date(r.created_at).getTime() };
@@ -597,12 +600,18 @@ function publicShell(c, inner){
       <a href="#/" class="brandmark"><div class="s">${logoMark()}</div>SONNO</a>
       <span class="pill" style="background:#e3f5ef;color:var(--green-dk);">${esc(c.name)}</span>
     </div>
+    ${posterBanner(c)}
     ${countdownHero(c)}
     ${prizesBanner(c)}
     <div class="card" style="padding:30px;margin-top:22px;">
       ${inner}
     </div>
   </div>`;
+}
+
+function posterBanner(c){
+  if(!c.posterUrl) return '';
+  return `<div class="poster-wrap"><img src="${esc(c.posterUrl)}" alt="${esc(c.name)}" class="poster-banner"></div>`;
 }
 
 function prizesBanner(c){
@@ -1069,6 +1078,18 @@ function renderAdminCampaignEdit(id){
       </div>
     </div>
 
+    <div class="card" style="padding:22px;margin-bottom:16px;">
+      <h3 style="margin:0 0 6px;font-size:15px;">Kampaniya Afişası (böyük banner)</h3>
+      <p style="margin:0 0 14px;font-size:12.5px;color:rgba(17,24,32,.5);">Müştəri QR skan edib bu kampaniyaya daxil olanda, səhifənin ən yuxarısında böyük şəkil kimi göstərilir (Netflix-tərzi banner). Tövsiyə olunan ölçü: <b>1200 × 400 piksel</b> (3:1 en/hündürlük nisbəti), JPG/PNG, maks. 5 MB.</p>
+      ${c.posterUrl ? `<img src="${esc(c.posterUrl)}" alt="Poster" style="width:100%;max-width:520px;aspect-ratio:3/1;object-fit:cover;border-radius:14px;display:block;margin-bottom:14px;border:1px solid var(--line-soft);">` : ''}
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="file" id="posterFile" accept="image/png,image/jpeg,image/webp" style="font-size:13px;">
+        <button id="uploadPosterBtn" class="btn btn-dark btn-sm">${c.posterUrl?'Şəkli dəyiş':'Şəkli yüklə'}</button>
+        ${c.posterUrl ? `<button id="removePosterBtn" class="btn btn-ghost btn-sm" style="color:#a13a3a;">Sil</button>` : ''}
+      </div>
+      <div id="posterUploadStatus" style="font-size:12.5px;color:rgba(17,24,32,.5);margin-top:8px;"></div>
+    </div>
+
     <div class="camp-edit-grid">
       <div>
         <div class="card" style="padding:22px;margin-bottom:16px;">
@@ -1143,6 +1164,35 @@ function renderAdminCampaignEdit(id){
     toast('Yadda saxlandı','ok'); renderAdminCampaignEdit(id);
   };
   document.getElementById('copyLinkBtn').onclick = ()=>{ navigator.clipboard?.writeText(url); toast('Link kopyalandı','ok'); };
+  document.getElementById('uploadPosterBtn').onclick = async ()=>{
+    const fileInput = document.getElementById('posterFile');
+    const file = fileInput.files[0];
+    const statusEl = document.getElementById('posterUploadStatus');
+    if(!file){ toast('Əvvəlcə bir şəkil seçin', 'err'); return; }
+    if(file.size > 5*1024*1024){ toast('Şəkil 5 MB-dan böyük ola bilməz', 'err'); return; }
+    statusEl.textContent = 'Yüklənir...';
+    const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
+    const path = `${c.id}-${Date.now()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('posters').upload(path, file, { upsert:true, contentType:file.type });
+    if(upErr){ statusEl.textContent = ''; toast('Xəta: '+upErr.message, 'err'); return; }
+    const { data: pub } = sb.storage.from('posters').getPublicUrl(path);
+    const posterUrl = pub.publicUrl;
+    const { error: updErr } = await sb.from('campaigns').update({poster_url: posterUrl}).eq('id', c.id);
+    if(updErr){ statusEl.textContent = ''; toast('Xəta: '+updErr.message, 'err'); return; }
+    c.posterUrl = posterUrl;
+    toast('Afişa yükləndi', 'ok');
+    renderAdminCampaignEdit(id);
+  };
+  const removeBtn = document.getElementById('removePosterBtn');
+  if(removeBtn){
+    removeBtn.onclick = async ()=>{
+      const { error } = await sb.from('campaigns').update({poster_url:null}).eq('id', c.id);
+      if(error){ toast('Xəta: '+error.message, 'err'); return; }
+      c.posterUrl = '';
+      toast('Afişa silindi', 'ok');
+      renderAdminCampaignEdit(id);
+    };
+  }
   document.getElementById('addPrizeBtn').onclick = ()=>openPrizeModal(c);
   bg_bindRmPrize(c);
 
@@ -1268,7 +1318,11 @@ async function renderAdminCodes(){
           <td><span class="badge" style="background:${b.unused>0?'#e3f5ef':'#eee'};color:${b.unused>0?'var(--green-dk)':'#888'};">${b.unused}</span></td>
           <td>${new Date(b.created_at).toLocaleDateString('az-AZ')}</td>
           <td style="text-align:right;white-space:nowrap;">
-            ${b.unused>0 ? `<button class="link-btn reprintBatch" data-batch="${b.batch_id}" data-campid="${b.campaign_id}" data-campname="${esc(b.campaign_name||'')}" data-campslug="${esc(b.campaign_slug||'')}">Qalanları çap et</button>` : `<span style="color:rgba(17,24,32,.3);font-size:12.5px;">Hamısı satılıb</span>`}
+            ${b.unused>0 ? `
+              <button class="link-btn pdfBatch" data-batch="${b.batch_id}" data-campid="${b.campaign_id}" data-campname="${esc(b.campaign_name||'')}" data-campslug="${esc(b.campaign_slug||'')}">PDF yüklə</button>
+              <span style="color:rgba(17,24,32,.25);">·</span>
+              <button class="link-btn reprintBatch" data-batch="${b.batch_id}" data-campid="${b.campaign_id}" data-campname="${esc(b.campaign_name||'')}" data-campslug="${esc(b.campaign_slug||'')}">Önizlə</button>
+            ` : `<span style="color:rgba(17,24,32,.3);font-size:12.5px;">Hamısı satılıb</span>`}
           </td>
         </tr>`).join('')}
       </tbody></table>` : `<div class="empty">Hələ heç bir kod dəsti yaradılmayıb.</div>`}
@@ -1283,16 +1337,29 @@ async function renderAdminCodes(){
   `));
   bindAdminShellEvents();
   document.getElementById('genCodesBtn').onclick = openGenCodesModal;
+  async function fetchUnusedCodes(batchId){
+    const { data, error } = await sb.from('product_codes').select('code').eq('batch_id', batchId).eq('status','unused');
+    if(error){ toast('Xəta: '+error.message, 'err'); return null; }
+    if(!data || !data.length){ toast('Qalıq kod tapılmadı', 'err'); return null; }
+    return data.map(r=>r.code);
+  }
   document.querySelectorAll('.reprintBatch').forEach(btn=>{
     btn.onclick = async ()=>{
       const origText = btn.textContent;
       btn.textContent = 'Yüklənir...'; btn.disabled = true;
-      const { data, error } = await sb.from('product_codes').select('code').eq('batch_id', btn.dataset.batch).eq('status','unused');
+      const codes = await fetchUnusedCodes(btn.dataset.batch);
       btn.disabled = false; btn.textContent = origText;
-      if(error){ toast('Xəta: '+error.message, 'err'); return; }
-      if(!data || !data.length){ toast('Qalıq kod tapılmadı', 'err'); return; }
+      if(!codes) return;
       const campaign = { id: btn.dataset.campid, slug: btn.dataset.campslug, name: btn.dataset.campname };
-      printCodeStickers(campaign, data.map(r=>r.code));
+      printCodeStickers(campaign, codes);
+    };
+  });
+  document.querySelectorAll('.pdfBatch').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const codes = await fetchUnusedCodes(btn.dataset.batch);
+      if(!codes) return;
+      const campaign = { id: btn.dataset.campid, slug: btn.dataset.campslug, name: btn.dataset.campname };
+      downloadCodeStickersPdf(campaign, codes, btn);
     };
   });
 }
@@ -1302,7 +1369,7 @@ function openGenCodesModal(){
   const bg = document.createElement('div'); bg.className='modal-bg';
   bg.innerHTML = `<div class="modal">
     <h3 style="margin-top:0;">Yeni kod dəsti yarat</h3>
-    <p style="font-size:13px;color:rgba(17,24,32,.55);margin-top:-8px;">Kodlar CSV faylı kimi yüklənəcək, üstəlik 5×5 sm ölçüdə çap-hazır stiker vərəqi də avtomatik açılacaq (hər stikerdə seçdiyiniz kampaniyanın QR-ı + unikal kod).</p>
+    <p style="font-size:13px;color:rgba(17,24,32,.55);margin-top:-8px;">Kodlar CSV faylı kimi yüklənəcək, üstəlik 5×5 sm ölçüdə çap-hazır PDF stiker vərəqi də avtomatik yüklənəcək (hər stikerdə seçdiyiniz kampaniyanın QR-ı + unikal kod) — birbaşa çap şirkətinə göndərə bilərsiniz.</p>
     <form id="genCodesForm">
       <div class="field"><label>Hansı kampaniya üçün?</label>
         <select required name="campaignId">
@@ -1357,15 +1424,112 @@ function openGenCodesModal(){
     const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `sonno-kodlar-${Date.now()}.csv`; a.click();
 
-    printCodeStickers(campaign, createdCodes);
+    progress.textContent = 'CSV yükləndi. İndi PDF stiker vərəqi hazırlanır...';
+    await downloadCodeStickersPdf(campaign, createdCodes, null);
 
-    toast(`${inserted} kod uğurla yaradıldı, CSV yükləndi və stiker vərəqi açıldı`, 'ok');
+    toast(`${inserted} kod uğurla yaradıldı — CSV və PDF stiker vərəqi yükləndi`, 'ok');
     bg.remove();
     renderAdminCodes();
   };
 }
 
 /* ---------------- çap üçün stiker vərəqi: 5×5 sm, marka QR-ı + unikal kod ---------------- */
+/* ---------------- PDF endirmə: çap şirkətinə göndərmək üçün real fayl ---------------- */
+async function loadImageAsDataUrl(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('QR yüklənmədi');
+  const blob = await res.blob();
+  return await new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function buildPromoImageDataUrl(){
+  // PDF-in daxili fontları Azərbaycan hərflərini (İ, Ş, ə) düzgün göstərmədiyi üçün,
+  // bu mətni brauzerin öz font mühərriki ilə "şəkil" kimi çəkib PDF-ə şəkil olaraq
+  // yerləşdiririk — beləcə hərflər çap zamanı 100% düzgün görünür.
+  const canvas = document.createElement('canvas');
+  canvas.width = 900; canvas.height = 230;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = "800 70px Arial, 'Helvetica Neue', sans-serif";
+  ctx.fillStyle = '#F78930';
+  ctx.fillText('QR-u SKAN ET', 450, 68);
+  ctx.font = "800 60px Arial, 'Helvetica Neue', sans-serif";
+  ctx.fillStyle = '#111820';
+  ctx.fillText('LOTEREYADA İŞTİRAK ET!', 450, 160);
+  return canvas.toDataURL('image/png');
+}
+
+async function downloadCodeStickersPdf(campaign, codes, btn){
+  if(!window.jspdf){ toast('PDF kitabxanası yüklənmədi, bir az sonra yenidən cəhd edin', 'err'); return; }
+  const origText = btn ? btn.textContent : null;
+  if(btn){ btn.disabled = true; btn.textContent = 'PDF hazırlanır...'; }
+
+  try{
+    const url = campaignUrl(campaign.slug);
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&color=111820&bgcolor=ffffff&data=${encodeURIComponent(url)}`;
+    const qrDataUrl = await loadImageAsDataUrl(qrImgUrl);
+    const promoImg = buildPromoImageDataUrl();
+    const promoAspect = 230/900; // hündürlük/en
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'cm', format:'a4' });
+
+    const cols = 4, rows = 5, size = 5, marginX = 0.5, marginY = 0.5;
+    const perPage = cols*rows;
+    const logoAspect = 220/524; // hündürlük/en nisbəti (real loqo faylından)
+
+    codes.forEach((code, idx) => {
+      const posInPage = idx % perPage;
+      if(idx !== 0 && posInPage === 0) doc.addPage();
+      const col = posInPage % cols;
+      const row = Math.floor(posInPage / cols);
+      const x = marginX + col*size;
+      const y = marginY + row*size;
+      const cx = x + size/2;
+
+      doc.setDrawColor(201,194,180);
+      doc.rect(x, y, size, size);
+
+      doc.setDrawColor(155,148,136);
+      doc.circle(cx, y+0.45, 0.16, 'D');
+
+      const promoW = 3.0, promoH = promoW*promoAspect;
+      doc.addImage(promoImg, 'PNG', cx-promoW/2, y+0.62, promoW, promoH);
+
+      const logoW = 0.4, logoH = logoW*logoAspect;
+      doc.addImage(LOGO_ORANGE, 'PNG', cx-0.55, y+1.35, logoW, logoH);
+      doc.setFont('times','bold');
+      doc.setFontSize(8);
+      doc.setTextColor(17,24,32);
+      doc.text('SONNO', cx+0.05, y+1.35+logoH/2+0.1, {align:'left'});
+
+      doc.addImage(qrDataUrl, 'PNG', cx-1.05, y+1.8, 2.1, 2.1);
+
+      doc.setFillColor(0,79,81);
+      doc.roundedRect(cx-1.0, y+4.05, 2.0, 0.55, 0.12, 0.12, 'F');
+      doc.setFont('courier','bold');
+      doc.setFontSize(10);
+      doc.setTextColor(255,255,255);
+      doc.text(code, cx, y+4.4, {align:'center'});
+    });
+
+    doc.save(`sonno-kod-stikerleri-${campaign.slug}-${Date.now()}.pdf`);
+    toast('PDF yükləndi', 'ok');
+  }catch(e){
+    console.error(e);
+    toast('PDF yaradılarkən xəta: '+e.message, 'err');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = origText; }
+  }
+}
+
 function printCodeStickers(campaign, codes){
   const url = campaignUrl(campaign.slug);
   const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&color=111820&bgcolor=ffffff&data=${encodeURIComponent(url)}`;
