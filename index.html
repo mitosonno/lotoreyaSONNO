@@ -967,6 +967,33 @@ function bindAdminShellEvents(){
 }
 
 /* ---------------- admin dashboard ---------------- */
+let DASH_STORE_DATE = new Date().toISOString().slice(0,10); // YYYY-MM-DD, defolt bu gün
+
+function storeStatsForDate(dateStr){
+  const rows = DB.regs.filter(r => {
+    const d = new Date(r.createdAt);
+    const local = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    return local === dateStr;
+  });
+  const byStore = {};
+  rows.forEach(r=>{ byStore[r.store] = (byStore[r.store]||0)+1; });
+  const list = Object.entries(byStore).sort((a,b)=>b[1]-a[1]);
+  return { total: rows.length, list };
+}
+
+function renderDashStoreResults(){
+  const box = document.getElementById('dashStoreResults');
+  if(!box) return;
+  const { total, list } = storeStatsForDate(DASH_STORE_DATE);
+  const dateLabel = new Date(DASH_STORE_DATE+'T00:00:00').toLocaleDateString('az-AZ', {day:'numeric', month:'long', year:'numeric'});
+  box.innerHTML = `
+    <div style="font-size:14px;margin-bottom:12px;">${esc(dateLabel)} tarixində ümumi: <b>${total}</b> QR skan (qeydiyyat)</div>
+    ${list.length ? `<table><thead><tr><th>Mağaza</th><th>Skan sayı</th></tr></thead><tbody>
+      ${list.map(([store,count])=>`<tr><td><b>${esc(store)}</b></td><td>${count}</td></tr>`).join('')}
+    </tbody></table>` : `<div class="empty">Bu tarixdə heç bir qeydiyyat yoxdur.</div>`}
+  `;
+}
+
 function renderAdminDashboard(){
   const totalCamps = DB.campaigns.filter(c=>c.status==='Aktiv').length;
   const allRegs = DB.regs.length;
@@ -991,12 +1018,32 @@ function renderAdminDashboard(){
       <div class="kpi-card"><div class="kpi-num">${todayRegs}</div><div class="kpi-label">Bu gün qeydiyyat</div></div>
       <div class="kpi-card"><div class="kpi-num">${last7} / ${last30}</div><div class="kpi-label">Son 7 gün / 30 gün</div></div>
     </div>
+
+    <div class="card" style="padding:22px;margin-bottom:16px;">
+      <h3 style="margin:0 0 4px;font-size:16px;">Gündəlik mağaza statistikası</h3>
+      <p style="margin:0 0 14px;font-size:12.5px;color:rgba(17,24,32,.5);">Bir gün seçin — həmin gün hansı mağazadan neçə QR skan (qeydiyyat) olduğunu görün. Məsələn: 6 — Rossi, 12 — Millennium, 9 — Ev Moda.</p>
+      <div style="display:flex;gap:10px;align-items:end;margin-bottom:16px;flex-wrap:wrap;">
+        <div class="field" style="margin:0;"><label>Tarix</label><input type="date" id="dashDateInput" value="${DASH_STORE_DATE}"></div>
+        <button id="dashDateSearchBtn" class="btn btn-dark btn-sm">Axtar</button>
+      </div>
+      <div id="dashStoreResults"></div>
+    </div>
+
     <div class="card" style="padding:22px;">
       <h3 style="margin:0 0 14px;font-size:16px;">Kampaniyalar</h3>
       ${DB.campaigns.length ? campaignsTable(DB.campaigns) : `<div class="empty">Hələ kampaniya yaradılmayıb.</div>`}
     </div>
   `));
   bindAdminShellEvents();
+  renderDashStoreResults();
+  document.getElementById('dashDateSearchBtn').onclick = ()=>{
+    DASH_STORE_DATE = document.getElementById('dashDateInput').value || DASH_STORE_DATE;
+    renderDashStoreResults();
+  };
+  document.getElementById('dashDateInput').onchange = ()=>{
+    DASH_STORE_DATE = document.getElementById('dashDateInput').value || DASH_STORE_DATE;
+    renderDashStoreResults();
+  };
 }
 
 function campaignsTable(camps){
